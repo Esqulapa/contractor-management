@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="JpbDataSourceConfig">
+    <data-sources>
+      <data-source id="72d836f9-e56f-48f2-a2c3-92b461480b71" name="jarek" url="jdbc:postgresql://localhost:5432/jarek" driverClass="org.postgresql.Driver" />
+    </data-sources>
+  </component>
+</project>
