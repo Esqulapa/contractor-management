@@ -43,7 +43,7 @@ public class ContractorBillingController {
         return new Result(true,StatusCode.SUCCESS,"Success",contractorBillingService.getContractorBillingById(id));
     }
 
-    //todo zapytać czy stosuje się tylko taką validacje paramsów
+
     @GetMapping("/report")
     public Result getContractorsWorkedHoursInGivenYearMonth(
             @Valid

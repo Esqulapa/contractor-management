@@ -4,10 +4,12 @@ import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import pl.jarekzegzula.requests.NewContractorRequest;
+import pl.jarekzegzula.requests.UpdateContractorOvertimeMultiplier;
+import pl.jarekzegzula.requests.UpdateContractorPrice;
 import pl.jarekzegzula.requests.UpdateContractorSalaryRequest;
 import pl.jarekzegzula.system.exception.ContractorAlreadyExistInGivenTimeException;
 import pl.jarekzegzula.system.exception.ObjectNotFoundException;
-import pl.jarekzegzula.system.exception.SalaryUnchangedException;
+import pl.jarekzegzula.system.exception.ValueUnchangedException;
 import static pl.jarekzegzula.system.Constants.*;
 
 import java.util.List;
@@ -31,6 +33,8 @@ public class ContractorService {
     public Contractor getContractorById(Integer id){
         return this.contractorRepository.findById(id).orElseThrow(()-> new ObjectNotFoundException("contractor", id));
     }
+    //todo przedyskutować overtimemultipliera czy dodawać defaultowo 1.5
+    // i za pomocą update requestu zmieniać, czy dać możliwość dodawania go od razu z requesta.
 
     public Contractor addNewContractor(NewContractorRequest request) {
 
@@ -40,6 +44,8 @@ public class ContractorService {
             contractor.setFirstName(request.firstName());
             contractor.setLastName(request.lastName());
             contractor.setSalary(request.salary());
+            contractor.setOvertimeMultiplier(request.overtimeMultiplier());
+            contractor.setContractorPrice(request.contractorPrice());
             return contractorRepository.save(contractor);
 
         }else {
@@ -55,6 +61,8 @@ public class ContractorService {
        this.contractorRepository.deleteById(id);
     }
 
+    //todo Zapytać Pera czy zmienić void na contractor i zapisywać w repo poprawionego contractora.
+
     public void updateContractorSalary(UpdateContractorSalaryRequest updateRequest, Integer id){
 
         Contractor contractor = contractorRepository.findById(id)
@@ -65,7 +73,39 @@ public class ContractorService {
             contractor.setSalary(updateRequest.salary());
 
         } else {
-            throw new SalaryUnchangedException("Salary remains the same or the value is incorrect");
+            throw new ValueUnchangedException("Salary remains the same or the value is incorrect");
+        }
+
+    }
+
+    public void updateContractorPrice(UpdateContractorPrice updateRequest, Integer id){
+
+        Contractor contractor = contractorRepository.findById(id)
+                .orElseThrow(
+                        () -> new ObjectNotFoundException("contractor", id ));
+
+        if (!Objects.equals(contractor.getContractorPrice(),updateRequest.price())
+                && updateRequest.price() >= ZERO) {
+            contractor.setContractorPrice(updateRequest.price());
+
+        } else {
+            throw new ValueUnchangedException("Contractor price remains the same or the value is incorrect");
+        }
+
+    }
+
+    public void updateContractorOvertimeMultiplier(UpdateContractorOvertimeMultiplier updateRequest, Integer id){
+
+        Contractor contractor = contractorRepository.findById(id)
+                .orElseThrow(
+                        () -> new ObjectNotFoundException("contractor", id ));
+
+        if (!Objects.equals(contractor.getOvertimeMultiplier(),updateRequest.multiplier())
+                && updateRequest.multiplier() >= ZERO) {
+            contractor.setOvertimeMultiplier(updateRequest.multiplier());
+
+        } else {
+            throw new ValueUnchangedException("Contractor overtime multiplier remains the same or the value is incorrect");
         }
 
     }

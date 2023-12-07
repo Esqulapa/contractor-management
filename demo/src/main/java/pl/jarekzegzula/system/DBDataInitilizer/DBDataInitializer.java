@@ -18,6 +18,7 @@ import java.time.Year;
 import java.util.ArrayList;
 
 @Component
+@Profile("blabla")
 public class DBDataInitializer implements CommandLineRunner {
 
     private final AppUserService appUserService;

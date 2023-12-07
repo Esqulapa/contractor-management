@@ -55,7 +55,7 @@ public class AppUserService implements UserDetailsService {
     public List<AppUserDto> getAllUsersDto() {
         List<AppUser> all = appUserRepository.findAll();
         return appUserToAppUserDtoConverter.convertList(all);
-        //todo zapytać Pera czy jest to konieczne
+
     }
 
     public List<AppUser> getAllUsers() {

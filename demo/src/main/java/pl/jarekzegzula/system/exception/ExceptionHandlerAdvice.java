@@ -93,9 +93,9 @@ public class ExceptionHandlerAdvice {
         return new Result(false, StatusCode.NOT_FOUND, "This API endpoint is not found.", ex.getMessage());
     }
 
-    @ExceptionHandler(SalaryUnchangedException.class)
+    @ExceptionHandler(ValueUnchangedException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    Result handleSalaryUnchangedOrLessThanZeroException(SalaryUnchangedException ex) {
+    Result handleSalaryUnchangedOrLessThanZeroException(ValueUnchangedException ex) {
         return new Result(false, StatusCode.INVALID_ARGUMENT, ex.getMessage());
     }
 

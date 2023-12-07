@@ -5,6 +5,7 @@ import org.hamcrest.Matchers;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -13,6 +14,8 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import pl.jarekzegzula.requests.NewContractorRequest;
+import pl.jarekzegzula.requests.UpdateContractorOvertimeMultiplier;
+import pl.jarekzegzula.requests.UpdateContractorPrice;
 import pl.jarekzegzula.requests.UpdateContractorSalaryRequest;
 import pl.jarekzegzula.system.StatusCode;
 import pl.jarekzegzula.system.exception.ObjectNotFoundException;
@@ -39,6 +42,8 @@ class ContractorControllerTest {
 
     @MockBean
     ContractorService contractorService;
+    @Mock
+    ContractorRepository contractorRepository;
 
     List<Contractor> contractors;
 
@@ -138,7 +143,7 @@ class ContractorControllerTest {
     @Test
     void testAddContractor() throws Exception {
         // Given
-        NewContractorRequest newContractorRequest = new NewContractorRequest("Marian", "Paździoch", 1600.0);
+        NewContractorRequest newContractorRequest = new NewContractorRequest("Marian", "Paździoch", 1600.0,1.5,2000.0);
 
         String jsonRequest = objectMapper.writeValueAsString(newContractorRequest);
 
@@ -156,7 +161,9 @@ class ContractorControllerTest {
                 .andExpect(jsonPath("$.flag").value(true))
                 .andExpect(jsonPath("$.code").value(200))
                 .andExpect(jsonPath("$.message").value("Contractor added successfully"))
-                .andExpect(jsonPath("$.data.firstName").value("Marian"));
+                .andExpect(jsonPath("$.data.firstName").value("Marian"))
+                .andExpect(jsonPath("$.data.overtimeMultiplier").value(1.5))
+                .andExpect(jsonPath("$.data.contractorPrice").value(2000));
     }
 
     @Test
@@ -178,7 +185,7 @@ class ContractorControllerTest {
         doNothing().when(contractorService).updateContractorSalary(updateRequest, contractorId);
 
         //When and Then
-        mockMvc.perform(put(this.baseUrl + "/contractor/{contractorId}", contractorId)
+        mockMvc.perform(put(this.baseUrl + "/contractor/salary/{contractorId}", contractorId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json))
                 .andExpect(jsonPath("$.flag").value(true))
@@ -197,7 +204,7 @@ class ContractorControllerTest {
 
         doThrow(new ObjectNotFoundException("contractor",contractorId)).when(this.contractorService).updateContractorSalary(updateRequest,contractorId);
         //When and Than
-       mockMvc.perform(put(this.baseUrl + "/contractor/{contractorId}", contractorId)
+       mockMvc.perform(put(this.baseUrl + "/contractor/salary/{contractorId}", contractorId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json))
                 .andExpect(jsonPath("$.flag").value(false))
@@ -234,4 +241,101 @@ class ContractorControllerTest {
                 .andExpect(jsonPath("$.message").value("Could not find contractor with Id " + contractorId))
                 .andExpect(jsonPath("$.data").isEmpty());
     }
+
+    @Test
+    void testUpdateContractorOvertimeMultiplier() throws Exception {
+
+        //Given
+        Contractor savedContractor = new Contractor();
+        savedContractor.setId(1);
+        savedContractor.setFirstName("Marian");
+        savedContractor.setLastName("Paździoch");
+        savedContractor.setSalary(1600.0);
+        savedContractor.setOvertimeMultiplier(1.5);
+
+        Integer contractorId = 1;
+
+        UpdateContractorOvertimeMultiplier updateRequest = new UpdateContractorOvertimeMultiplier(2.0);
+        String json = objectMapper.writeValueAsString(updateRequest);
+
+
+        doNothing().when(contractorService).updateContractorOvertimeMultiplier(updateRequest, contractorId);
+
+        //When and Then
+        mockMvc.perform(put(this.baseUrl + "/contractor/multiplier/{contractorId}", contractorId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json))
+                .andExpect(jsonPath("$.flag").value(true))
+                .andExpect(jsonPath("$.code").value(200))
+                .andExpect(jsonPath("$.message").value("Update success"));
+    }
+
+    @Test
+    void testUpdateContractorOvertimeMultiplierErrorWithNonExistentId() throws Exception {
+        //Given
+        UpdateContractorOvertimeMultiplier updateRequest = new UpdateContractorOvertimeMultiplier(2.0);
+
+        String json = objectMapper.writeValueAsString(updateRequest);
+
+        Integer contractorId = 10;
+
+        doThrow(new ObjectNotFoundException("contractor",contractorId))
+                .when(this.contractorService).updateContractorOvertimeMultiplier(updateRequest,contractorId);
+        //When and Than
+        mockMvc.perform(put(this.baseUrl + "/contractor/multiplier/{contractorId}", contractorId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json))
+                .andExpect(jsonPath("$.flag").value(false))
+                .andExpect(jsonPath("$.code").value(StatusCode.NOT_FOUND))
+                .andExpect(jsonPath("$.message").value("Could not find contractor with Id " + contractorId));
+    }
+
+    @Test
+    void testUpdateContractorPrice() throws Exception {
+
+        //Given
+        Contractor savedContractor = new Contractor();
+        savedContractor.setId(1);
+        savedContractor.setFirstName("Marian");
+        savedContractor.setLastName("Paździoch");
+        savedContractor.setSalary(1600.0);
+        savedContractor.setOvertimeMultiplier(1.5);
+        savedContractor.setContractorPrice(6000.0);
+
+        Integer contractorId = 1;
+
+        UpdateContractorPrice updateRequest = new UpdateContractorPrice(7000.0);
+        String json = objectMapper.writeValueAsString(updateRequest);
+
+
+        doNothing().when(contractorService).updateContractorPrice(updateRequest, contractorId);
+
+        //When and Then
+        mockMvc.perform(put(this.baseUrl + "/contractor/price/{contractorId}", contractorId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json))
+                .andExpect(jsonPath("$.flag").value(true))
+                .andExpect(jsonPath("$.code").value(200))
+                .andExpect(jsonPath("$.message").value("Update success"));
+    }
+
+    @Test
+    void testUpdateContractorPriceErrorWithNonExistentId() throws Exception {
+        //Given
+        UpdateContractorPrice updateRequest = new UpdateContractorPrice(7000.0);
+        String json = objectMapper.writeValueAsString(updateRequest);
+
+        Integer contractorId = 10;
+
+        doThrow(new ObjectNotFoundException("contractor",contractorId))
+                .when(this.contractorService).updateContractorPrice(updateRequest,contractorId);
+        //When and Than
+        mockMvc.perform(put(this.baseUrl + "/contractor/price/{contractorId}", contractorId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json))
+                .andExpect(jsonPath("$.flag").value(false))
+                .andExpect(jsonPath("$.code").value(StatusCode.NOT_FOUND))
+                .andExpect(jsonPath("$.message").value("Could not find contractor with Id " + contractorId));
+    }
+
 }

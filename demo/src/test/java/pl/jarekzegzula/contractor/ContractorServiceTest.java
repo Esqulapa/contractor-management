@@ -9,11 +9,14 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import pl.jarekzegzula.requests.NewContractorRequest;
+import pl.jarekzegzula.requests.UpdateContractorOvertimeMultiplier;
+import pl.jarekzegzula.requests.UpdateContractorPrice;
 import pl.jarekzegzula.requests.UpdateContractorSalaryRequest;
 import pl.jarekzegzula.system.exception.ContractorAlreadyExistInGivenTimeException;
 import pl.jarekzegzula.system.exception.ObjectNotFoundException;
-import pl.jarekzegzula.system.exception.SalaryUnchangedException;
+import pl.jarekzegzula.system.exception.ValueUnchangedException;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -38,13 +41,13 @@ class ContractorServiceTest {
     @BeforeEach
     void setUp(){
         NewContractorRequest newContractor1 = new NewContractorRequest(
-                "Marian", "Paździoch", 1600.0);
+                "Marian", "Paździoch", 1600.0,1.5,2000.0);
 
         NewContractorRequest newContractor2 = new NewContractorRequest(
-                "Ryszard", "Peja", 3000.0);
+                "Ryszard", "Peja", 3000.0,1.5,4000.0);
 
         NewContractorRequest newContractor3 = new NewContractorRequest(
-                "Ferdynand", "Kiepski ", 1500.0);
+                "Ferdynand", "Kiepski ", 1500.0,1.5,2000.0);
 
         Contractor contractor1 = this.contractorService.addNewContractor(newContractor1);
         Contractor contractor2 = this.contractorService.addNewContractor(newContractor2);
@@ -70,6 +73,8 @@ class ContractorServiceTest {
         testContractor.setFirstName("Ferdynand");
         testContractor.setLastName("Testowy");
         testContractor.setSalary(1000.0);
+        testContractor.setOvertimeMultiplier(1.5);
+        testContractor.setContractorPrice(2000.0);
 
         given(this.contractorRepository.findById(1)).willReturn(Optional.of(testContractor));
 
@@ -81,6 +86,8 @@ class ContractorServiceTest {
         assertThat(returnedContractor.getFirstName()).isEqualTo(testContractor.getFirstName());
         assertThat(returnedContractor.getLastName()).isEqualTo(testContractor.getLastName());
         assertThat(returnedContractor.getSalary()).isEqualTo(testContractor.getSalary());
+        assertThat(returnedContractor.getContractorPrice()).isEqualTo(testContractor.getContractorPrice());
+        assertThat(returnedContractor.getOvertimeMultiplier()).isEqualTo(testContractor.getOvertimeMultiplier());
         verify(this.contractorRepository, times(1)).findById(1);
     }
 
@@ -121,12 +128,14 @@ class ContractorServiceTest {
 
         //Given
         NewContractorRequest newContractorRequest = new NewContractorRequest(
-                "Artur", "Testowy", 16000.0);
+                "Artur", "Testowy", 1600.0,1.5,2000.0);
 
         Contractor testContractor = new Contractor();
         testContractor.setFirstName(newContractorRequest.firstName());
         testContractor.setLastName(newContractorRequest.lastName());
         testContractor.setSalary(newContractorRequest.salary());
+        testContractor.setOvertimeMultiplier(1.5);
+        testContractor.setContractorPrice(2000.0);
 
 
         given(this.contractorRepository.save(testContractor)).willReturn(testContractor);
@@ -139,6 +148,8 @@ class ContractorServiceTest {
         assertThat(savedContractor.getFirstName()).isEqualTo(testContractor.getFirstName());
         assertThat(savedContractor.getLastName()).isEqualTo(testContractor.getLastName());
         assertThat(savedContractor.getSalary()).isEqualTo(testContractor.getSalary());
+        assertThat(savedContractor.getContractorPrice()).isEqualTo(testContractor.getContractorPrice());
+        assertThat(savedContractor.getOvertimeMultiplier()).isEqualTo(testContractor.getOvertimeMultiplier());
 
         verify(this.contractorRepository,times(1)).save(testContractor);
 
@@ -148,7 +159,7 @@ class ContractorServiceTest {
     @Test
     public void testAddNewContractorWhenContractorExists() {
         //Given
-        NewContractorRequest request = new NewContractorRequest("John", "Doe", 1000.0);
+        NewContractorRequest request = new NewContractorRequest("John", "Doe", 1000.0,1.5,2000.0);
 
         //When
         given(contractorRepository.existsByFirstNameAndLastName(request.firstName(), request.lastName())).willReturn(true);
@@ -202,7 +213,7 @@ class ContractorServiceTest {
         contractorService.updateContractorSalary(updateRequest, id);
 
         // Then
-        assertEquals(updateRequest.salary(), existingContractor.getSalary(), 0.01); // Check salary with a tolerance
+        assertEquals(updateRequest.salary(), existingContractor.getSalary(), 0.01);
 
     }
     @Test
@@ -217,7 +228,7 @@ class ContractorServiceTest {
         given(contractorRepository.findById(id)).willReturn(Optional.of(existingContractor));
 
         // When
-        assertThrows(SalaryUnchangedException.class, () -> contractorService.updateContractorSalary(updateRequest, id));
+        assertThrows(ValueUnchangedException.class, () -> contractorService.updateContractorSalary(updateRequest, id));
 
         //Then
         verify(this.contractorRepository,times(1)).findById(1);
@@ -235,7 +246,121 @@ class ContractorServiceTest {
         given(contractorRepository.findById(id)).willReturn(Optional.of(existingContractor));
 
         // When
-        assertThrows(SalaryUnchangedException.class, () -> contractorService.updateContractorSalary(updateRequest, id));
+        assertThrows(ValueUnchangedException.class, () -> contractorService.updateContractorSalary(updateRequest, id));
+
+        //Then
+        verify(contractorRepository,times(1)).findById(1);
+    }
+    @Test
+    void updateContractorPrice() {
+        // Given
+
+        Integer id = 1;
+
+        Contractor existingContractor = new Contractor();
+        existingContractor.setId(id);
+        existingContractor.setContractorPrice(1000.0);
+
+        UpdateContractorPrice updateRequest = new UpdateContractorPrice(2000.0);
+
+        given(contractorRepository.findById(id)).willReturn(Optional.of(existingContractor));
+
+        // When
+        contractorService.updateContractorPrice(updateRequest, id);
+
+        // Then
+        assertEquals(updateRequest.price(), existingContractor.getContractorPrice(), 0.01);
+
+    }
+    @Test
+    public void testUpdateContractorPriceUnchanged() {
+        // Given
+        Integer id = 1;
+        Contractor existingContractor = new Contractor();
+        existingContractor.setId(id);
+        existingContractor.setContractorPrice(1000.0);
+
+        UpdateContractorPrice updateRequest = new UpdateContractorPrice(1000.0);
+        given(contractorRepository.findById(id)).willReturn(Optional.of(existingContractor));
+
+        // When
+        assertThrows(ValueUnchangedException.class, () -> contractorService.updateContractorPrice(updateRequest, id));
+
+        //Then
+        verify(this.contractorRepository,times(1)).findById(1);
+    }
+    @Test
+    public void testUpdateContractorPriceInvalidValue() {
+        // Given
+        Integer id = 1;
+        Contractor existingContractor = new Contractor();
+        existingContractor.setId(id);
+        existingContractor.setContractorPrice(1000.0);
+
+        UpdateContractorPrice updateRequest = new UpdateContractorPrice(-500.0);
+
+        given(contractorRepository.findById(id)).willReturn(Optional.of(existingContractor));
+
+        // When
+        assertThrows(ValueUnchangedException.class, () -> contractorService.updateContractorPrice(updateRequest, id));
+
+        //Then
+        verify(contractorRepository,times(1)).findById(1);
+    }
+
+    @Test
+    void updateContractorOvertimeMultiplier() {
+        // Given
+
+        Integer id = 1;
+
+        Contractor existingContractor = new Contractor();
+        existingContractor.setId(id);
+        existingContractor.setOvertimeMultiplier(1.50);
+
+        UpdateContractorOvertimeMultiplier updateRequest = new UpdateContractorOvertimeMultiplier(2.0);
+
+        given(contractorRepository.findById(id)).willReturn(Optional.of(existingContractor));
+
+        // When
+        contractorService.updateContractorOvertimeMultiplier(updateRequest, id);
+
+        // Then
+        assertEquals(updateRequest.multiplier(), existingContractor.getOvertimeMultiplier(), 0.01);
+
+    }
+
+    @Test
+    public void testUpdateContractorOvertimeMultiplierUnchanged() {
+        // Given
+        Integer id = 1;
+        Contractor existingContractor = new Contractor();
+        existingContractor.setId(id);
+        existingContractor.setOvertimeMultiplier(1.50);
+
+        UpdateContractorOvertimeMultiplier updateRequest = new UpdateContractorOvertimeMultiplier(1.5);
+        given(contractorRepository.findById(id)).willReturn(Optional.of(existingContractor));
+
+        // When
+        assertThrows(ValueUnchangedException.class, () -> contractorService.updateContractorOvertimeMultiplier(updateRequest, id));
+
+        //Then
+        verify(this.contractorRepository,times(1)).findById(1);
+    }
+    @Test
+    public void testUpdateContractorOvertimeMultiplierInvalidValue() {
+        // Given
+        Integer id = 1;
+        Contractor existingContractor = new Contractor();
+        existingContractor.setId(id);
+        existingContractor.setOvertimeMultiplier(1.50);
+
+        UpdateContractorOvertimeMultiplier updateRequest = new UpdateContractorOvertimeMultiplier(-1.0);
+
+        given(contractorRepository.findById(id)).willReturn(Optional.of(existingContractor));
+
+        // When
+        assertThrows(ValueUnchangedException.class, () -> contractorService.updateContractorOvertimeMultiplier(updateRequest, id));
 
         //Then
         verify(contractorRepository,times(1)).findById(1);

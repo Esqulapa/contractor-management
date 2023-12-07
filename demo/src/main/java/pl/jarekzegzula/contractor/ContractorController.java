@@ -4,6 +4,8 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import pl.jarekzegzula.requests.NewContractorRequest;
+import pl.jarekzegzula.requests.UpdateContractorOvertimeMultiplier;
+import pl.jarekzegzula.requests.UpdateContractorPrice;
 import pl.jarekzegzula.requests.UpdateContractorSalaryRequest;
 import pl.jarekzegzula.system.Result;
 import pl.jarekzegzula.system.StatusCode;
@@ -38,11 +40,29 @@ public class ContractorController {
     return new Result(true,StatusCode.SUCCESS,"Contractor added successfully",request);
     }
 
-    @PutMapping("{contractorId}")
+    @PutMapping("salary/{contractorId}")
     public Result updateContractorSalary(@PathVariable("contractorId") Integer id,
                                   @RequestBody @Valid UpdateContractorSalaryRequest updateRequest) {
 
         contractorService.updateContractorSalary(updateRequest,id);
+
+        return new Result(true,StatusCode.SUCCESS,"Update success");
+    }
+
+    @PutMapping("multiplier/{contractorId}")
+    public Result updateContractorOvertimeMultiplier(@PathVariable("contractorId") Integer id,
+                                         @RequestBody @Valid UpdateContractorOvertimeMultiplier updateRequest) {
+
+        contractorService.updateContractorOvertimeMultiplier(updateRequest,id);
+
+        return new Result(true,StatusCode.SUCCESS,"Update success");
+    }
+
+    @PutMapping("price/{contractorId}")
+    public Result updateContractorPrice(@PathVariable("contractorId") Integer id,
+                                                     @RequestBody @Valid UpdateContractorPrice updateRequest) {
+
+        contractorService.updateContractorPrice(updateRequest,id);
 
         return new Result(true,StatusCode.SUCCESS,"Update success");
     }
