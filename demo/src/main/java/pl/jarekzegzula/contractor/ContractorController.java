@@ -46,7 +46,7 @@ public class ContractorController {
 
     }
     @PutMapping("hour-limit/{contractorId}")
-    public Result updateContractorHourlyRate(@PathVariable("contractorId") Integer id,
+    public Result updateContractorMonthlyHourLimit(@PathVariable("contractorId") Integer id,
                                              @RequestBody @Valid UpdateMonthlyHourLimitRequest updateRequest) {
         contractorService.updateMonthlyHourLimitAndMonthlyEarnings(updateRequest, id);
 
