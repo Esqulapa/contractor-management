@@ -79,7 +79,7 @@ public class ContractorController {
 
         return new Result(true, StatusCode.SUCCESS, "Update success");
     }
-    //todo integracyjne testy
+    
     @PutMapping("contract-type/{contractorId}")
     public Result updateContractorContractType(@PathVariable("contractorId") Integer id,
                                            @RequestBody @Valid UpdateContractorContractTypeRequest updateRequest) {
