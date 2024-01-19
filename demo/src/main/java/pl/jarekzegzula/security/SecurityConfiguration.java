@@ -69,7 +69,8 @@ public class SecurityConfiguration {
                 .authorizeHttpRequests(authorizeHttpRequests -> authorizeHttpRequests
                         .requestMatchers(HttpMethod.GET, this.baseUrl + "/contractor").permitAll()
                         .requestMatchers(HttpMethod.GET, this.baseUrl + "/contractor/**").hasAuthority("ROLE_admin")
-                        .requestMatchers(HttpMethod.POST, this.baseUrl + "/users").hasAuthority("ROLE_admin")
+                        .requestMatchers(HttpMethod.POST, this.baseUrl + "/users").permitAll()
+                        .requestMatchers(HttpMethod.POST, this.baseUrl + "/users/**").permitAll()
                         .requestMatchers(HttpMethod.PUT, this.baseUrl + "/users/**").hasAuthority("ROLE_admin")
                         .requestMatchers(HttpMethod.DELETE, this.baseUrl + "/users/**").hasAuthority("ROLE_admin")
                         .anyRequest().authenticated())
@@ -109,7 +110,7 @@ public class SecurityConfiguration {
 
         jwtGrantedAuthoritiesConverter.setAuthoritiesClaimName("authorities");
 
-        jwtGrantedAuthoritiesConverter.setAuthorityPrefix(""); //empty bcs it deletes SCOPE_ jwt prefix authority
+        jwtGrantedAuthoritiesConverter.setAuthorityPrefix(""); //empty because it deletes SCOPE_ jwt prefix authority
 
         JwtAuthenticationConverter jwtAuthenticationConverter = new JwtAuthenticationConverter();
 

@@ -8,21 +8,20 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.MediaType;
+import pl.jarekzegzula.calc.Calculator;
+import pl.jarekzegzula.contract.ContractType;
 import pl.jarekzegzula.contractor.Contractor;
 import pl.jarekzegzula.contractor.ContractorRepository;
-import pl.jarekzegzula.contractorBilling.Dto.ContractorBillingDTO;
-import pl.jarekzegzula.requests.NewContractorBillingRequest;
-import pl.jarekzegzula.requests.UpdateContractorHoursRequest;
+import pl.jarekzegzula.contractorBilling.dto.ContractorBillingDTO;
+import pl.jarekzegzula.requests.addNewRequest.NewContractorBillingRequest;
+import pl.jarekzegzula.requests.updateRequest.UpdateContractorBillingHoursRequest;
 import pl.jarekzegzula.system.exception.ContractorAlreadyExistInGivenTimeException;
 import pl.jarekzegzula.system.exception.ObjectNotFoundException;
 import pl.jarekzegzula.system.exception.SameHoursOrLessThanZeroException;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.time.Month;
 import java.time.Year;
-import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -35,11 +34,6 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static pl.jarekzegzula.contractorBilling.ContractorBillingService.calculatePayment;
-import static pl.jarekzegzula.contractorBilling.ContractorBillingService.countWorkingHoursWithoutWeekendsInMonth;
-import static pl.jarekzegzula.system.Constants.*;
 
 @ExtendWith(MockitoExtension.class)
 class ContractorBillingServiceTest {
@@ -59,17 +53,30 @@ class ContractorBillingServiceTest {
 
     @BeforeEach
     void setUp() {
+
         Contractor testContractor1 = new Contractor();
         testContractor1.setId(1);
         testContractor1.setFirstName("Ferdynand");
         testContractor1.setLastName("Testowy");
-        testContractor1.setSalary(1000.0);
+        testContractor1.setContractType(ContractType.CONTRACT_B2B);
+        testContractor1.setMonthlyEarnings(59.53*168);
+        testContractor1.setHourlyRate(59.53);
+        testContractor1.setMonthlyHourLimit(168);
+        testContractor1.setIsOvertimePaid(true);
+        testContractor1.setOvertimeMultiplier(1.5);
+        testContractor1.setContractorHourPrice(80.0);
 
         Contractor testContractor2 = new Contractor();
         testContractor2.setId(2);
-        testContractor2.setFirstName("Ryszard");
-        testContractor2.setLastName("Tester");
-        testContractor2.setSalary(1500.0);
+        testContractor2.setFirstName("Marian");
+        testContractor2.setLastName("Testowy");
+        testContractor2.setContractType(ContractType.CONTRACT_OF_MANDATE);
+        testContractor2.setMonthlyEarnings(59.53*150);
+        testContractor2.setHourlyRate(40.0);
+        testContractor2.setMonthlyHourLimit(150);
+        testContractor2.setIsOvertimePaid(true);
+        testContractor2.setOvertimeMultiplier(1.5);
+        testContractor2.setContractorHourPrice(55.0);
 
         contractors = new ArrayList<>();
         contractors.add(testContractor1);
@@ -82,6 +89,17 @@ class ContractorBillingServiceTest {
         contractorBilling1.setWorkedHours(160.0);
         contractorBilling1.setYear(Year.of(2023));
         contractorBilling1.setMonth(Month.MARCH);
+        contractorBilling1.setContractorRemuneration
+                (Calculator.calculateContractorPayment(
+                        contractorBilling1.getWorkedHours(),contractorBilling1.getContractor() ));
+        contractorBilling1.setClientCharge
+                (Calculator.calculateClientsChargeFromContractorHours(
+                        contractorBilling1.getWorkedHours(), contractorBilling1.getContractor()));
+        contractorBilling1.setProfit(
+                Calculator.calculateProfit(
+                        contractorBilling1.getClientCharge(),contractorBilling1.getContractorRemuneration()));
+
+
 
 
         ContractorBilling contractorBilling2 = new ContractorBilling();
@@ -90,6 +108,16 @@ class ContractorBillingServiceTest {
         contractorBilling2.setWorkedHours(152.0);
         contractorBilling2.setYear(Year.of(2023));
         contractorBilling2.setMonth(Month.MAY);
+        contractorBilling2.setContractorRemuneration
+                (Calculator.calculateContractorPayment(
+                        contractorBilling2.getWorkedHours(),contractorBilling2.getContractor() ));
+        contractorBilling2.setClientCharge
+                (Calculator.calculateClientsChargeFromContractorHours(
+                        contractorBilling2.getWorkedHours(), contractorBilling2.getContractor()));
+        contractorBilling2.setProfit(
+                Calculator.calculateProfit(
+                        contractorBilling2.getClientCharge(),contractorBilling2.getContractorRemuneration()));
+
 
         contractorBillings = new ArrayList<>();
         contractorBillings.add(contractorBilling1);
@@ -161,44 +189,53 @@ class ContractorBillingServiceTest {
         testContractor1.setId(1);
         testContractor1.setFirstName("Ferdynand");
         testContractor1.setLastName("Testowy");
-        testContractor1.setSalary(1000.0);
+        testContractor1.setContractType(ContractType.CONTRACT_B2B);
+        testContractor1.setMonthlyEarnings(59.53*168);
+        testContractor1.setHourlyRate(59.53);
+        testContractor1.setMonthlyHourLimit(168);
+        testContractor1.setIsOvertimePaid(true);
+        testContractor1.setOvertimeMultiplier(1.5);
+        testContractor1.setContractorHourPrice(80.0);
 
         ContractorBilling contractorBilling = new ContractorBilling();
         contractorBilling.setContractor(testContractor1);
         contractorBilling.setWorkedHours(request.workedHours());
         contractorBilling.setYear(request.year());
         contractorBilling.setMonth(request.month());
-        Double hoursInMonth = countWorkingHoursWithoutWeekendsInMonth(request.year(), request.month());
-        contractorBilling.setPayment(
-                calculatePayment(
-                        hoursInMonth,
-                        request.workedHours(),
-                        testContractor1.getSalary())
-        );
+        contractorBilling.setContractorRemuneration(Calculator.calculatePaymentForB2BContract(request.workedHours(),testContractor1));
+        contractorBilling.setClientCharge(Calculator.calculateClientsChargeFromContractorHours(request.workedHours(),testContractor1));
+        contractorBilling.setProfit(Calculator.calculateProfit(contractorBilling.getClientCharge(),contractorBilling.getContractorRemuneration()));
+
+
 
         given(contractorRepository.findById(1)).willReturn(Optional.of(testContractor1));
-        given(contractorBillingRepository.existsByContractor_IdAndYearAndMonth(1, Year.of(2023), Month.MARCH))
+        given(contractorBillingRepository.existsByContractorIdAndYearAndMonth(1, Year.of(2023), Month.MARCH))
                 .willReturn(false);
-        given(contractorBillingRepository.save(Mockito.any(ContractorBilling.class)))
-                .willAnswer(invocation -> invocation.getArgument(0));
+        given(contractorBillingRepository.save(Mockito.any(ContractorBilling.class))).willReturn(contractorBilling);
 
         //When
 
-        ContractorBilling contractorBilling1 = contractorBillingService.addNewContractorBilling(request);
+        ContractorBilling contractorBilling2 = contractorBillingService.addNewContractorBilling(request);
 
         //Then
 
-        assertThat(contractorBilling1).isEqualTo(contractorBilling);
-        assertNotNull(contractorBilling1);
-        assertEquals(1, contractorBilling1.getContractor().getId());
-        assertEquals(150.0, contractorBilling1.getWorkedHours());
-        assertEquals(Year.of(2023), contractorBilling1.getYear());
-        assertEquals(Month.MARCH, contractorBilling1.getMonth());
-        assertNotNull(contractorBilling1.getPayment());
+        assertThat(contractorBilling2).isEqualTo(contractorBilling);
+        assertNotNull(contractorBilling2);
+        assertEquals(1, contractorBilling2.getContractor().getId());
+        assertEquals(150.0, contractorBilling2.getWorkedHours());
+        assertEquals(Year.of(2023), contractorBilling2.getYear());
+        assertEquals(Month.MARCH, contractorBilling2.getMonth());
+        assertNotNull(contractorBilling2.getContractorRemuneration());
+        assertNotNull(contractorBilling2.getClientCharge());
+        assertNotNull(contractorBilling2.getProfit());
 
         verify(contractorRepository, Mockito.times(1)).findById(1);
-        verify(contractorBillingRepository, Mockito.times(1)).existsByContractor_IdAndYearAndMonth(1, Year.of(2023), Month.MARCH);
+        verify(contractorBillingRepository, Mockito.times(1)).existsByContractorIdAndYearAndMonth(1, Year.of(2023), Month.MARCH);
         verify(contractorBillingRepository, Mockito.times(1)).save(any(ContractorBilling.class));
+
+        System.out.println(contractorBilling2);
+
+
 
     }
 
@@ -209,19 +246,19 @@ class ContractorBillingServiceTest {
 
         given(contractorRepository.findById(anyInt())).willReturn(Optional.of(new Contractor()));
 
-        given(contractorBillingRepository.existsByContractor_IdAndYearAndMonth(anyInt(), any(Year.class), any(Month.class))).willReturn(true);
+        given(contractorBillingRepository.existsByContractorIdAndYearAndMonth(anyInt(), any(Year.class), any(Month.class))).willReturn(true);
 
         //When and Then
 
         Throwable thrown = assertThrows(ContractorAlreadyExistInGivenTimeException.class, () -> contractorBillingService.addNewContractorBilling(request));
 
-        assertThat(thrown).isInstanceOf(ContractorAlreadyExistInGivenTimeException.class).hasMessage("Contractor billing at given date already exist");
+        assertThat(thrown).isInstanceOf(ContractorAlreadyExistInGivenTimeException.class).hasMessage("Contractor billing at given date already exists");
     }
 
     @Test
     void testUpdateContractorHours() {
         //Given
-        UpdateContractorHoursRequest updateRequest = new UpdateContractorHoursRequest(150.0);
+        UpdateContractorBillingHoursRequest updateRequest = new UpdateContractorBillingHoursRequest(150.0);
 
         Integer id = 1;
 
@@ -244,7 +281,7 @@ class ContractorBillingServiceTest {
     void testUpdateContractorHoursErrorSameHoursOrLessThanZeroException() {
         //Given
         Integer id = 1;
-        UpdateContractorHoursRequest updateRequest = new UpdateContractorHoursRequest(150.0);
+        UpdateContractorBillingHoursRequest updateRequest = new UpdateContractorBillingHoursRequest(150.0);
         ContractorBilling existingContractorBilling = new ContractorBilling();
         existingContractorBilling.setId(id);
         existingContractorBilling.setWorkedHours(150.0);
@@ -254,7 +291,7 @@ class ContractorBillingServiceTest {
         //When and Then
         Throwable sameHoursOrLessThanZeroException = assertThrows(SameHoursOrLessThanZeroException.class, () -> contractorBillingService.updateContractorBillingWorkedHours(updateRequest, id));
 
-        assertThat(sameHoursOrLessThanZeroException).isInstanceOf(SameHoursOrLessThanZeroException.class).hasMessage("the given data to be changed is the same or less than zero");
+        assertThat(sameHoursOrLessThanZeroException).isInstanceOf(SameHoursOrLessThanZeroException.class).hasMessage("The given data to be changed is the same or less than zero");
 
     }
 
@@ -285,7 +322,7 @@ class ContractorBillingServiceTest {
     }
 
     @Test
-    void getContractorWorkedHoursInGivenYearMonthTestSuccess() throws Exception {
+    void testGetContractorBillingMonthlyReportSuccess() {
         //Given
 
         Year year = Year.of(2023);
@@ -295,16 +332,14 @@ class ContractorBillingServiceTest {
         contractorByYearAndMonth.add(contractorBillings.get(0));
         List<ContractorBillingDTO> contractorBillingDTOS = contractorByYearAndMonth.stream().map(ContractorBillingDTO::new).toList();
 
-        ContractorBillingReportByMonth contractorBillingReportByMonth =
-                new ContractorBillingReportByMonth(YearMonth.of(2023
-                        , 3)
-                        , countWorkingHoursWithoutWeekendsInMonth(year, month)
-                        , contractorBillingDTOS);
+
+        ContractorBillingReportByMonth contractorBillingReportByMonth = new ContractorBillingReportByMonth(contractorBillingDTOS, year, month);
+        
 
         given(contractorBillingRepository.findByYearAndMonth(any(), any()))
                 .willReturn(Optional.of(contractorByYearAndMonth));
         //When
-        ContractorBillingReportByMonth contractorsWorkedHoursInGivenMonth = contractorBillingService.getContractorsWorkedHoursInGivenMonth(year, month);
+        ContractorBillingReportByMonth contractorsWorkedHoursInGivenMonth = contractorBillingService.getContractorBillingsMonthlyReport(year, month);
 
         //Then
         assertThat(contractorsWorkedHoursInGivenMonth).isEqualTo(contractorBillingReportByMonth);
@@ -313,7 +348,7 @@ class ContractorBillingServiceTest {
     }
 
     @Test
-    void getContractorWorkedHoursInGivenYearMonthTestNotFound() throws Exception {
+    void testGetContractorBillingMonthlyReportNotFound(){
         //Given
         Year year = Year.of(2023);
         Month month = Month.MARCH;
@@ -322,7 +357,7 @@ class ContractorBillingServiceTest {
 
 
         //When
-        Throwable error = assertThrows(ObjectNotFoundException.class, () -> contractorBillingService.getContractorsWorkedHoursInGivenMonth(year,month));
+        Throwable error = assertThrows(ObjectNotFoundException.class, () -> contractorBillingService.getContractorBillingsMonthlyReport(year,month));
 
         //Then
         assertThat(error).isInstanceOf(ObjectNotFoundException.class).hasMessage("Could not find contractor billings with given " + year + " and " + month);
@@ -331,34 +366,18 @@ class ContractorBillingServiceTest {
 
     }
 
-
     @Test
-    public void testCalculatePayment_ZeroHours() {
-        BigDecimal payment = calculatePayment(40.0, 0.0, 1500.0);
-        assertEquals(new BigDecimal(ZERO_HOURS).setScale(2, RoundingMode.HALF_UP), payment);
-    }
+    public void testCalculateProfit(){
+       //given
+        BigDecimal num1 = BigDecimal.valueOf(1000);
+        BigDecimal num2 = BigDecimal.valueOf(100);
+        //when
 
-    @Test
-    public void testCalculatePayment_LessThanFullTime() {
-        BigDecimal payment = calculatePayment(40.0, 35.0, 1500.0);
-        double expectedPayment = 35.0 * (1500.0 / 40.0);
-        assertEquals(new BigDecimal(expectedPayment).setScale(2, RoundingMode.HALF_UP), payment);
-    }
+        BigDecimal bigDecimal = Calculator.calculateProfit(num1,num2);
+        //then
 
-    @Test
-    public void testCalculatePayment_FullTime() {
-        BigDecimal payment = calculatePayment(40.0, 40.0, 1500.0);
-        double expectedPayment = 40.0 * (1500.0 / 40.0);
-        assertEquals(new BigDecimal(expectedPayment).setScale(2, RoundingMode.HALF_UP), payment);
-    }
+        assertThat(bigDecimal).isEqualTo(BigDecimal.valueOf(900));
 
-    @Test
-    public void testCalculatePayment_Overtime() {
-        BigDecimal payment = calculatePayment(40.0, 45.0, 1500.0);
-        double fullTimePayment = 40.0 * (1500.0 / 40.0);
-        double overtimePayment = (45.0 - 40.0) * (OVER_TIME_MULTIPLIER * 1500.0 / 40.0);
-        double expectedPayment = fullTimePayment + overtimePayment;
-        assertEquals(new BigDecimal(expectedPayment).setScale(2, RoundingMode.HALF_UP), payment);
     }
 
 }

@@ -14,10 +14,12 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.Rollback;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
-import pl.jarekzegzula.requests.NewAppUserRequest;
+import org.springframework.transaction.annotation.Transactional;
+import pl.jarekzegzula.requests.addNewRequest.NewAppUserRequest;
 import pl.jarekzegzula.system.StatusCode;
 
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
@@ -27,6 +29,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
+@Transactional
+@Rollback
 @DisplayName("Integration tests for AppUser API endpoints")
 @Tag("integration")
 public class AppUserControllerIntegrationTest {
@@ -54,6 +58,7 @@ public class AppUserControllerIntegrationTest {
         this.token = "Bearer " + json.getJSONObject("data").getString("token");
 
     }
+
     @Test
     @DisplayName("Check findAllUsers (GET)")
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
@@ -67,6 +72,7 @@ public class AppUserControllerIntegrationTest {
 
     @Test
     @DisplayName("Check findUserById (GET)")
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     void testFindUserByIdSuccess() throws Exception {
         this.mockMvc.perform(get(this.baseUrl + "/users/1").accept(MediaType.APPLICATION_JSON).header(HttpHeaders.AUTHORIZATION, this.token))
                 .andExpect(jsonPath("$.flag").value(true))
@@ -78,6 +84,7 @@ public class AppUserControllerIntegrationTest {
 
     @Test
     @DisplayName("Check findUserById with non-existent id (GET)")
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     void testFindUserByIdNotFound() throws Exception {
         this.mockMvc.perform(get(this.baseUrl + "/users/5").accept(MediaType.APPLICATION_JSON).header(HttpHeaders.AUTHORIZATION, this.token))
                 .andExpect(jsonPath("$.flag").value(false))
@@ -86,12 +93,14 @@ public class AppUserControllerIntegrationTest {
                 .andExpect(jsonPath("$.data").isEmpty());
     }
 
+
+
     @Test
     @DisplayName("Check addUser with valid input (POST)")
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     void testAddUserSuccess() throws Exception {
 
-        NewAppUserRequest newAppUserRequest = new NewAppUserRequest("Rysio","qazwsxqwe123");
+        NewAppUserRequest newAppUserRequest = new NewAppUserRequest("Rysio", "qazwsxqwe123");
 
         String json = this.objectMapper.writeValueAsString(newAppUserRequest);
 
@@ -103,6 +112,7 @@ public class AppUserControllerIntegrationTest {
                 .andExpect(jsonPath("$.data.username").value("Rysio"))
                 .andExpect(jsonPath("$.data.enabled").value(true))
                 .andExpect(jsonPath("$.data.roles").value("admin"));
+
         this.mockMvc.perform(get(this.baseUrl + "/users").accept(MediaType.APPLICATION_JSON).header(HttpHeaders.AUTHORIZATION, this.token))
                 .andExpect(jsonPath("$.flag").value(true))
                 .andExpect(jsonPath("$.code").value(StatusCode.SUCCESS))
@@ -135,6 +145,7 @@ public class AppUserControllerIntegrationTest {
 
     @Test
     @DisplayName("Check deleteUser with valid input (DELETE)")
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     void testDeleteUserSuccess() throws Exception {
         this.mockMvc.perform(delete(this.baseUrl + "/users/2").accept(MediaType.APPLICATION_JSON).header(HttpHeaders.AUTHORIZATION, this.token))
                 .andExpect(jsonPath("$.flag").value(true))
@@ -150,6 +161,7 @@ public class AppUserControllerIntegrationTest {
 
     @Test
     @DisplayName("Check deleteUser with non-existent id (DELETE)")
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     void testDeleteUserErrorWithNonExistentId() throws Exception {
         this.mockMvc.perform(delete(this.baseUrl + "/users/5").accept(MediaType.APPLICATION_JSON).header(HttpHeaders.AUTHORIZATION, this.token))
                 .andExpect(jsonPath("$.flag").value(false))
@@ -158,16 +170,19 @@ public class AppUserControllerIntegrationTest {
                 .andExpect(jsonPath("$.data").isEmpty());
     }
 
+
     @Test
     @DisplayName("Check deleteUser with insufficient permission (DELETE)")
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     void testDeleteUserNoAccessAsRoleUser() throws Exception {
-        ResultActions resultActions = this.mockMvc.perform(post(this.baseUrl + "/users/login").with(httpBasic("user2", "12345")));
+        ResultActions resultActions = this.mockMvc.perform(post(this.baseUrl + "/users/login").with(httpBasic("user2", "1234")));
         MvcResult mvcResult = resultActions.andDo(print()).andReturn();
         String contentAsString = mvcResult.getResponse().getContentAsString();
         JSONObject json = new JSONObject(contentAsString);
-        String ericToken = "Bearer " + json.getJSONObject("data").getString("token");
 
-        this.mockMvc.perform(delete(this.baseUrl + "/users/1").accept(MediaType.APPLICATION_JSON).header(HttpHeaders.AUTHORIZATION, ericToken))
+        String userToken = "Bearer " + json.getJSONObject("data").getString("token");
+
+        this.mockMvc.perform(delete(this.baseUrl + "/users/1").accept(MediaType.APPLICATION_JSON).header(HttpHeaders.AUTHORIZATION, userToken))
                 .andExpect(jsonPath("$.flag").value(false))
                 .andExpect(jsonPath("$.code").value(StatusCode.FORBIDDEN))
                 .andExpect(jsonPath("$.message").value("No permission."))

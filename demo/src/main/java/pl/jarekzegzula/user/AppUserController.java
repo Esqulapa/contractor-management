@@ -5,7 +5,7 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import pl.jarekzegzula.converter.AppUserToAppUserDtoConverter;
-import pl.jarekzegzula.requests.NewAppUserRequest;
+import pl.jarekzegzula.requests.addNewRequest.NewAppUserRequest;
 import pl.jarekzegzula.system.Result;
 import pl.jarekzegzula.system.StatusCode;
 import pl.jarekzegzula.system.exception.UserAlreadyExistException;

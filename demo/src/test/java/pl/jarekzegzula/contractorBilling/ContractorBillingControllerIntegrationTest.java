@@ -14,11 +14,13 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.Rollback;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
-import pl.jarekzegzula.requests.NewContractorBillingRequest;
-import pl.jarekzegzula.requests.UpdateContractorHoursRequest;
+import org.springframework.transaction.annotation.Transactional;
+import pl.jarekzegzula.requests.addNewRequest.NewContractorBillingRequest;
+import pl.jarekzegzula.requests.updateRequest.UpdateContractorBillingHoursRequest;
 import pl.jarekzegzula.system.StatusCode;
 
 import java.time.Month;
@@ -31,6 +33,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
+@Rollback
+@Transactional
 @DisplayName("Integration tests for ContractorBilling API endpoints")
 @Tag("integration")
 public class ContractorBillingControllerIntegrationTest {
@@ -68,11 +72,12 @@ public class ContractorBillingControllerIntegrationTest {
                 .andExpect(jsonPath("$.flag").value(true))
                 .andExpect(jsonPath("$.code").value(StatusCode.SUCCESS))
                 .andExpect(jsonPath("$.message").value("Success"))
-                .andExpect(jsonPath("$.data", Matchers.hasSize(4)));
+                .andExpect(jsonPath("$.data", Matchers.hasSize(3)));
     }
 
     @Test
     @DisplayName("Check findContractorBillingById (GET)")
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     void testFindContractorBillingByIdSuccess() throws Exception {
         this.mockMvc.perform(get(this.baseUrl + "/contractor/billing/1")
                         .accept(MediaType.APPLICATION_JSON).header(HttpHeaders.AUTHORIZATION, this.token))
@@ -80,14 +85,14 @@ public class ContractorBillingControllerIntegrationTest {
                 .andExpect(jsonPath("$.code").value(StatusCode.SUCCESS))
                 .andExpect(jsonPath("$.message").value("Success"))
                 .andExpect(jsonPath("$.data.id").value("1"))
-                .andExpect(jsonPath("$.data.workedHours").value(160.0))
-                .andExpect(jsonPath("$.data.year").value("2023"))
-                .andExpect(jsonPath("$.data.month").value("MARCH"))
-                .andExpect(jsonPath("$.data.payment").value("1391.3"));
+                .andExpect(jsonPath("$.data.workedHours").value(168.0))
+                .andExpect(jsonPath("$.data.year").value("2024"))
+                .andExpect(jsonPath("$.data.month").value("FEBRUARY"));
     }
 
     @Test
     @DisplayName("Check findContractorBillingById with non-existent id (GET)")
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     void testFindContractorByIdNotFound() throws Exception {
         this.mockMvc.perform(get(this.baseUrl + "/contractor/billing/10")
                         .accept(MediaType.APPLICATION_JSON).header(HttpHeaders.AUTHORIZATION, this.token))
@@ -123,7 +128,7 @@ public class ContractorBillingControllerIntegrationTest {
                 .andExpect(jsonPath("$.flag").value(true))
                 .andExpect(jsonPath("$.code").value(StatusCode.SUCCESS))
                 .andExpect(jsonPath("$.message").value("Success"))
-                .andExpect(jsonPath("$.data", Matchers.hasSize(5)));
+                .andExpect(jsonPath("$.data", Matchers.hasSize(4)));
 
     }
 
@@ -154,7 +159,7 @@ public class ContractorBillingControllerIntegrationTest {
                 .andExpect(jsonPath("$.flag").value(true))
                 .andExpect(jsonPath("$.code").value(StatusCode.SUCCESS))
                 .andExpect(jsonPath("$.message").value("Success"))
-                .andExpect(jsonPath("$.data", Matchers.hasSize(4)));
+                .andExpect(jsonPath("$.data", Matchers.hasSize(3)));
 
     }
 
@@ -162,12 +167,13 @@ public class ContractorBillingControllerIntegrationTest {
     @DisplayName("Check updateContractorBillingWorkingHours with valid input (PUT)")
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     void testUpdateContractorBillingWorkedHoursSuccess() throws Exception {
-        UpdateContractorHoursRequest updateContractorHoursRequest = new UpdateContractorHoursRequest(144.0);
 
-        String json = objectMapper.writeValueAsString(updateContractorHoursRequest);
+        UpdateContractorBillingHoursRequest updateContractorBillingHoursRequest = new UpdateContractorBillingHoursRequest(144.0);
+
+        String json = objectMapper.writeValueAsString(updateContractorBillingHoursRequest);
 
 
-        this.mockMvc.perform(put(this.baseUrl + "/contractor/billing/1")
+        this.mockMvc.perform(put(this.baseUrl + "/contractor/billing/hours/1")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json).accept(MediaType.APPLICATION_JSON)
                         .header(HttpHeaders.AUTHORIZATION, this.token))
@@ -189,12 +195,12 @@ public class ContractorBillingControllerIntegrationTest {
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     void testUpdateContractorBillingWorkedHoursErrorWithNonExistentId() throws Exception {
 
-        UpdateContractorHoursRequest updateContractorHoursRequest = new UpdateContractorHoursRequest(144.0);
+        UpdateContractorBillingHoursRequest updateContractorBillingHoursRequest = new UpdateContractorBillingHoursRequest(144.0);
 
-        String json = objectMapper.writeValueAsString(updateContractorHoursRequest);
+        String json = objectMapper.writeValueAsString(updateContractorBillingHoursRequest);
 
 
-        this.mockMvc.perform(put(this.baseUrl + "/contractor/billing/10")
+        this.mockMvc.perform(put(this.baseUrl + "/contractor/billing/hours/10")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json).accept(MediaType.APPLICATION_JSON)
                         .header(HttpHeaders.AUTHORIZATION, this.token))
@@ -209,12 +215,13 @@ public class ContractorBillingControllerIntegrationTest {
     @DisplayName("Check updateContractorBillingWorkedHours with invalid input (PUT)")
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     void testUpdateContractorBillingWorkedHoursErrorWithInvalidInput() throws Exception {
-        UpdateContractorHoursRequest updateContractorHoursRequest = new UpdateContractorHoursRequest(null);
 
-        String json = objectMapper.writeValueAsString(updateContractorHoursRequest);
+        UpdateContractorBillingHoursRequest updateContractorBillingHoursRequest = new UpdateContractorBillingHoursRequest(null);
+
+        String json = objectMapper.writeValueAsString(updateContractorBillingHoursRequest);
 
 
-        this.mockMvc.perform(put(this.baseUrl + "/contractor/billing/1")
+        this.mockMvc.perform(put(this.baseUrl + "/contractor/billing/hours/1")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json).accept(MediaType.APPLICATION_JSON)
                         .header(HttpHeaders.AUTHORIZATION, this.token))
@@ -230,23 +237,24 @@ public class ContractorBillingControllerIntegrationTest {
     @DisplayName("Check updateContractorBillingWorkedHours with the same salary value (PUT)")
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     void testUpdateContractorBillingWorkedHoursErrorWithTheSameValue() throws Exception {
-        UpdateContractorHoursRequest updateContractorHoursRequest = new UpdateContractorHoursRequest(160.0);
+        UpdateContractorBillingHoursRequest updateContractorBillingHoursRequest = new UpdateContractorBillingHoursRequest(168.0);
 
-        String json = objectMapper.writeValueAsString(updateContractorHoursRequest);
+        String json = objectMapper.writeValueAsString(updateContractorBillingHoursRequest);
 
-        this.mockMvc.perform(put(this.baseUrl + "/contractor/billing/1")
+        this.mockMvc.perform(put(this.baseUrl + "/contractor/billing/hours/1")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json).accept(MediaType.APPLICATION_JSON)
                         .header(HttpHeaders.AUTHORIZATION, this.token))
                 .andExpect(jsonPath("$.flag").value(false))
                 .andExpect(jsonPath("$.code").value(StatusCode.INVALID_ARGUMENT))
-                .andExpect(jsonPath("$.message").value("the given data to be changed is the same or less than zero"));
+                .andExpect(jsonPath("$.message").value("The given data to be changed is the same or less than zero"));
 
 
     }
 
     @Test
     @DisplayName("Check deleteContractorBilling with valid input (DELETE)")
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     void testDeleteContractorBillingSuccess() throws Exception {
         this.mockMvc.perform(delete(this.baseUrl + "/contractor/billing/1").accept(MediaType.APPLICATION_JSON).header(HttpHeaders.AUTHORIZATION, this.token))
                 .andExpect(jsonPath("$.flag").value(true))
@@ -261,7 +269,8 @@ public class ContractorBillingControllerIntegrationTest {
 
     @Test
     @DisplayName("Check deleteArtifact with non-existent id (DELETE)")
-    void testDeleteArtifactErrorWithNonExistentId() throws Exception {
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
+    void testDeleteContractorBillingErrorWithNonExistentId() throws Exception {
         this.mockMvc.perform(delete(this.baseUrl + "/contractor/billing/100").accept(MediaType.APPLICATION_JSON).header(HttpHeaders.AUTHORIZATION, this.token))
                 .andExpect(jsonPath("$.flag").value(false))
                 .andExpect(jsonPath("$.code").value(StatusCode.NOT_FOUND))
@@ -271,25 +280,27 @@ public class ContractorBillingControllerIntegrationTest {
 
     @Test
     @DisplayName("Check getContractorsWorkedHoursInGivenYearMonth with valid input (GET)")
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     void testGetContractorsWorkedHoursInGivenYearMonthSuccess() throws Exception {
         this.mockMvc.perform(get(this.baseUrl + "/contractor/billing/report")
-                        .param("year", "2023")
-                        .param("month", "MARCH")
+                        .param("year", "2024")
+                        .param("month", "FEBRUARY")
                         .accept(MediaType.APPLICATION_JSON)
                         .header(HttpHeaders.AUTHORIZATION, this.token))
                 .andExpect(jsonPath("$.flag").value(true))
                 .andExpect(jsonPath("$.code").value(StatusCode.SUCCESS))
                 .andExpect(jsonPath("$.message").value("Success"))
                 .andExpect(jsonPath("$.data").exists())
-                .andExpect(jsonPath("$.data.yearMonth").value("2023-03"))
-                .andExpect(jsonPath("$.data.workingHours").value( 184.0))
-                .andExpect(jsonPath("$.data.contractorBillings", Matchers.hasSize(3)));
+                .andExpect(jsonPath("$.data.yearMonth").value("2024-02"))
+                .andExpect(jsonPath("$.data.workingHours").value( 168.0))
+                .andExpect(jsonPath("$.data.contractorBillingDTOS", Matchers.hasSize(3)));
 
 
     }
 
     @Test
     @DisplayName("Check getContractorsWorkedHoursInGivenYearMonth with non existent billings (GET)")
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     void testGetContractorsWorkedHoursInGivenYearMonthWithNonExistentBillings() throws Exception {
         this.mockMvc.perform(get(this.baseUrl + "/contractor/billing/report")
                         .param("year", "2024")

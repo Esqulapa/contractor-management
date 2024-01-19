@@ -9,7 +9,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import pl.jarekzegzula.requests.NewAppUserRequest;
+import pl.jarekzegzula.requests.addNewRequest.NewAppUserRequest;
 import pl.jarekzegzula.system.exception.ObjectNotFoundException;
 import pl.jarekzegzula.system.exception.UserAlreadyExistException;
 
@@ -21,8 +21,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
