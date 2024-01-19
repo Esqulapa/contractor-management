@@ -6,13 +6,12 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import pl.jarekzegzula.converter.AppUserToAppUserDtoConverter;
-import pl.jarekzegzula.requests.NewAppUserRequest;
+import pl.jarekzegzula.requests.addNewRequest.NewAppUserRequest;
 import pl.jarekzegzula.system.exception.ObjectNotFoundException;
 import pl.jarekzegzula.system.exception.UserAlreadyExistException;
 import pl.jarekzegzula.user.dto.AppUserDto;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class AppUserService implements UserDetailsService {

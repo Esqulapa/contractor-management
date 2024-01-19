@@ -20,10 +20,9 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
-import pl.jarekzegzula.requests.NewContractorRequest;
-import pl.jarekzegzula.requests.UpdateContractorOvertimeMultiplier;
-import pl.jarekzegzula.requests.UpdateContractorPrice;
-import pl.jarekzegzula.requests.UpdateContractorSalaryRequest;
+import pl.jarekzegzula.contract.ContractType;
+import pl.jarekzegzula.requests.addNewRequest.NewContractorRequest;
+import pl.jarekzegzula.requests.updateRequest.*;
 import pl.jarekzegzula.system.StatusCode;
 
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
@@ -86,8 +85,7 @@ public class ContractorControllerIntegrationTest {
                 .andExpect(jsonPath("$.message").value("Success"))
                 .andExpect(jsonPath("$.data.id").value("2"))
                 .andExpect(jsonPath("$.data.firstName").value("Arnold"))
-                .andExpect(jsonPath("$.data.lastName").value("Bakon"))
-                .andExpect(jsonPath("$.data.salary").value(10000.0));
+                .andExpect(jsonPath("$.data.lastName").value("Bakon"));
     }
 
     @Test
@@ -105,9 +103,10 @@ public class ContractorControllerIntegrationTest {
     @DisplayName("Check addContractor with valid input (POST)")
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     void testAddContractorSuccess() throws Exception {
-        NewContractorRequest newContractorRequest =
-                new NewContractorRequest("Marek", "Marucha", 1600.0,1.5,2000.0);
-
+        NewContractorRequest newContractorRequest = new NewContractorRequest(
+                "Artur", "Testowy",
+                3, 50.0, 168,
+                true, 1.5, 80.0);
         String jsonRequest = objectMapper.writeValueAsString(newContractorRequest);
 
         this.mockMvc.perform(post(this.baseUrl + "/contractor")
@@ -117,9 +116,13 @@ public class ContractorControllerIntegrationTest {
                 .andExpect(jsonPath("$.flag").value(true))
                 .andExpect(jsonPath("$.code").value(StatusCode.SUCCESS))
                 .andExpect(jsonPath("$.message").value("Contractor added successfully"))
-                .andExpect(jsonPath("$.data.firstName").value("Marek"))
-                .andExpect(jsonPath("$.data.lastName").value("Marucha"))
-                .andExpect(jsonPath("$.data.salary").value(1600.0));
+                .andExpect(jsonPath("$.data.firstName").value("Artur"))
+                .andExpect(jsonPath("$.data.lastName").value("Testowy"))
+                .andExpect(jsonPath("$.data.contractType").value(3))
+                .andExpect(jsonPath("$.data.hourlyRate").value(50.0))
+                .andExpect(jsonPath("$.data.overtimeMultiplier").value(1.5))
+                .andExpect(jsonPath("$.data.contractorHourPrice").value(80.0));
+
         this.mockMvc.perform(get(this.baseUrl + "/contractor").accept(MediaType.APPLICATION_JSON).header(HttpHeaders.AUTHORIZATION, this.token))
                 .andExpect(jsonPath("$.flag").value(true))
                 .andExpect(jsonPath("$.code").value(StatusCode.SUCCESS))
@@ -133,7 +136,7 @@ public class ContractorControllerIntegrationTest {
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     void testAddContractorErrorWithInvalidInput() throws Exception {
         NewContractorRequest newContractorRequest =
-                new NewContractorRequest("", "", null,null,null);
+                new NewContractorRequest("", "", null, null, null, null, null, null);
 
         String jsonRequest = objectMapper.writeValueAsString(newContractorRequest);
 
@@ -146,7 +149,7 @@ public class ContractorControllerIntegrationTest {
                 .andExpect(jsonPath("$.message").value("Provided arguments are invalid, see data for details."))
                 .andExpect(jsonPath("$.data.firstName").value("must not be empty"))
                 .andExpect(jsonPath("$.data.lastName").value("must not be empty"))
-                .andExpect(jsonPath("$.data.salary").value("must not be null"));
+                .andExpect(jsonPath("$.data.contractType").value("must not be null"));
         this.mockMvc.perform(get(this.baseUrl + "/contractor").accept(MediaType.APPLICATION_JSON).header(HttpHeaders.AUTHORIZATION, this.token))
                 .andExpect(jsonPath("$.flag").value(true))
                 .andExpect(jsonPath("$.code").value(StatusCode.SUCCESS))
@@ -154,17 +157,18 @@ public class ContractorControllerIntegrationTest {
                 .andExpect(jsonPath("$.data", Matchers.hasSize(3)));
 
     }
+
     @Test
-    @DisplayName("Check updateContractorSalary with valid input (PUT)")
+    @DisplayName("Check updateContractorHourlyRate with valid input (PUT)")
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
-    void testUpdateContractorSalarySuccess() throws Exception {
-        UpdateContractorSalaryRequest updateRequest = new UpdateContractorSalaryRequest(2500.0);
+    void testUpdateContractorHourlyRateSuccess() throws Exception {
+        UpdateContractorHourlyRateRequest updateRequest = new UpdateContractorHourlyRateRequest(50.0);
 
         String json = objectMapper.writeValueAsString(updateRequest);
 
         Integer contractorId = 2;
 
-        this.mockMvc.perform(put(this.baseUrl + "/contractor/salary/{contractorId}",contractorId)
+        this.mockMvc.perform(put(this.baseUrl + "/contractor/hourly-rate/{contractorId}", contractorId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json).accept(MediaType.APPLICATION_JSON)
                         .header(HttpHeaders.AUTHORIZATION, this.token))
@@ -172,25 +176,25 @@ public class ContractorControllerIntegrationTest {
                 .andExpect(jsonPath("$.code").value(StatusCode.SUCCESS))
                 .andExpect(jsonPath("$.message").value("Update success"));
 
-    this.mockMvc.perform(get(this.baseUrl + "/contractor/{contractorId}",contractorId).accept(MediaType.APPLICATION_JSON).header(HttpHeaders.AUTHORIZATION, this.token))
+        this.mockMvc.perform(get(this.baseUrl + "/contractor/{contractorId}", contractorId).accept(MediaType.APPLICATION_JSON).header(HttpHeaders.AUTHORIZATION, this.token))
                 .andExpect(jsonPath("$.flag").value(true))
                 .andExpect(jsonPath("$.code").value(StatusCode.SUCCESS))
                 .andExpect(jsonPath("$.message").value("Success"))
-                .andExpect(jsonPath("$.data.salary").value(2500.0));
+                .andExpect(jsonPath("$.data.hourlyRate").value(50));
 
     }
 
     @Test
-    @DisplayName("Check updateContractorSalary with non-existent id (PUT)")
+    @DisplayName("Check updateContractorHourlyRate with non-existent id (PUT)")
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
-    void testUpdateContractorSalaryErrorWithNonExistentId() throws Exception {
-        UpdateContractorSalaryRequest updateRequest = new UpdateContractorSalaryRequest(1500.0);
+    void testUpdateContractorHourlyRateErrorWithNonExistentId() throws Exception {
+        UpdateContractorHourlyRateRequest updateRequest = new UpdateContractorHourlyRateRequest(50.0);
 
         String json = objectMapper.writeValueAsString(updateRequest);
 
         Integer contractorId = 10;
 
-        this.mockMvc.perform(put(this.baseUrl + "/contractor/salary/{contractorId}",contractorId)
+        this.mockMvc.perform(put(this.baseUrl + "/contractor/hourly-rate/{contractorId}", contractorId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json).accept(MediaType.APPLICATION_JSON)
                         .header(HttpHeaders.AUTHORIZATION, this.token))
@@ -202,48 +206,48 @@ public class ContractorControllerIntegrationTest {
     }
 
     @Test
-    @DisplayName("Check updateContractorSalary with invalid input (PUT)")
+    @DisplayName("Check updateContractorHourlyRate with invalid input (PUT)")
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
-    void testUpdateContractorSalaryErrorWithInvalidInput() throws Exception {
-        UpdateContractorSalaryRequest updateRequest = new UpdateContractorSalaryRequest(-1.0);
+    void testUpdateContractorHourlyRateErrorWithInvalidInput() throws Exception {
+        UpdateContractorHourlyRateRequest updateRequest = new UpdateContractorHourlyRateRequest(-1.0);
 
         String json = objectMapper.writeValueAsString(updateRequest);
 
         Integer contractorId = 2;
 
-        this.mockMvc.perform(put(this.baseUrl + "/contractor/salary/{contractorId}",contractorId)
+        this.mockMvc.perform(put(this.baseUrl + "/contractor/hourly-rate/{contractorId}", contractorId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json).accept(MediaType.APPLICATION_JSON)
                         .header(HttpHeaders.AUTHORIZATION, this.token))
                 .andExpect(jsonPath("$.flag").value(false))
                 .andExpect(jsonPath("$.code").value(StatusCode.INVALID_ARGUMENT))
-                .andExpect(jsonPath("$.message").value("Salary remains the same or the value is incorrect"));
+                .andExpect(jsonPath("$.message").value("Hourly rate remains the same or the value is incorrect"));
 
 
     }
 
     @Test
-    @DisplayName("Check updateContractorSalary with the same salary value (PUT)")
+    @DisplayName("Check updateContractorHourlyRate with the same salary value (PUT)")
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
-    void testUpdateContractorSalaryErrorWithTheSameValue() throws Exception {
-        UpdateContractorSalaryRequest updateRequest = new UpdateContractorSalaryRequest(10000.0);
+    void testUpdateContractorHourlyRateSameValue() throws Exception {
+        UpdateContractorHourlyRateRequest updateRequest = new UpdateContractorHourlyRateRequest(36.0);
 
         String json = objectMapper.writeValueAsString(updateRequest);
 
         Integer contractorId = 2;
 
-        this.mockMvc.perform(put(this.baseUrl + "/contractor/salary/{contractorId}",contractorId)
+        this.mockMvc.perform(put(this.baseUrl + "/contractor/hourly-rate/{contractorId}", contractorId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json).accept(MediaType.APPLICATION_JSON)
                         .header(HttpHeaders.AUTHORIZATION, this.token))
                 .andExpect(jsonPath("$.flag").value(false))
                 .andExpect(jsonPath("$.code").value(StatusCode.INVALID_ARGUMENT))
-                .andExpect(jsonPath("$.message").value("Salary remains the same or the value is incorrect"));
-
-
+                .andExpect(jsonPath("$.message").value("Hourly rate remains the same or the value is incorrect"));
     }
+
     @Test
     @DisplayName("Check deleteContractor with valid input (DELETE)")
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     void testDeleteContractorSuccess() throws Exception {
         this.mockMvc.perform(delete(this.baseUrl + "/contractor/1").accept(MediaType.APPLICATION_JSON).header(HttpHeaders.AUTHORIZATION, this.token))
                 .andExpect(jsonPath("$.flag").value(true))
@@ -258,6 +262,7 @@ public class ContractorControllerIntegrationTest {
 
     @Test
     @DisplayName("Check deleteArtifact with non-existent id (DELETE)")
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     void testDeleteArtifactErrorWithNonExistentId() throws Exception {
         this.mockMvc.perform(delete(this.baseUrl + "/contractor/100").accept(MediaType.APPLICATION_JSON).header(HttpHeaders.AUTHORIZATION, this.token))
                 .andExpect(jsonPath("$.flag").value(false))
@@ -277,7 +282,7 @@ public class ContractorControllerIntegrationTest {
 
         Integer contractorId = 2;
 
-        this.mockMvc.perform(put(this.baseUrl + "/contractor/multiplier/{contractorId}",contractorId)
+        this.mockMvc.perform(put(this.baseUrl + "/contractor/multiplier/{contractorId}", contractorId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json).accept(MediaType.APPLICATION_JSON)
                         .header(HttpHeaders.AUTHORIZATION, this.token))
@@ -285,7 +290,7 @@ public class ContractorControllerIntegrationTest {
                 .andExpect(jsonPath("$.code").value(StatusCode.SUCCESS))
                 .andExpect(jsonPath("$.message").value("Update success"));
 
-        this.mockMvc.perform(get(this.baseUrl + "/contractor/{contractorId}",contractorId)
+        this.mockMvc.perform(get(this.baseUrl + "/contractor/{contractorId}", contractorId)
                         .accept(MediaType.APPLICATION_JSON).header(HttpHeaders.AUTHORIZATION, this.token))
                 .andExpect(jsonPath("$.flag").value(true))
                 .andExpect(jsonPath("$.code").value(StatusCode.SUCCESS))
@@ -306,7 +311,7 @@ public class ContractorControllerIntegrationTest {
 
         Integer contractorId = 10;
 
-        this.mockMvc.perform(put(this.baseUrl + "/contractor/multiplier/{contractorId}",contractorId)
+        this.mockMvc.perform(put(this.baseUrl + "/contractor/multiplier/{contractorId}", contractorId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json).accept(MediaType.APPLICATION_JSON)
                         .header(HttpHeaders.AUTHORIZATION, this.token))
@@ -328,7 +333,7 @@ public class ContractorControllerIntegrationTest {
 
         Integer contractorId = 2;
 
-        this.mockMvc.perform(put(this.baseUrl + "/contractor/multiplier/{contractorId}",contractorId)
+        this.mockMvc.perform(put(this.baseUrl + "/contractor/multiplier/{contractorId}", contractorId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json).accept(MediaType.APPLICATION_JSON)
                         .header(HttpHeaders.AUTHORIZATION, this.token))
@@ -350,7 +355,7 @@ public class ContractorControllerIntegrationTest {
 
         Integer contractorId = 2;
 
-        this.mockMvc.perform(put(this.baseUrl + "/contractor/multiplier/{contractorId}",contractorId)
+        this.mockMvc.perform(put(this.baseUrl + "/contractor/multiplier/{contractorId}", contractorId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json).accept(MediaType.APPLICATION_JSON)
                         .header(HttpHeaders.AUTHORIZATION, this.token))
@@ -358,25 +363,20 @@ public class ContractorControllerIntegrationTest {
                 .andExpect(jsonPath("$.code").value(StatusCode.INVALID_ARGUMENT))
                 .andExpect(jsonPath("$.message")
                         .value("Contractor overtime multiplier remains the same or the value is incorrect"));
-
-
     }
 
-
-    //Update price
-
     @Test
-    @DisplayName("Check updateContractorPrice with valid input (PUT)")
+    @DisplayName("Check updateContractorHourPrice with valid input (PUT)")
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
-    void testUpdateContractorPriceSuccess() throws Exception {
+    void testUpdateContractorHourPriceSuccess() throws Exception {
 
-        UpdateContractorPrice updateRequest = new UpdateContractorPrice(17000.0);
+        UpdateContractorHourPriceRequest updateRequest = new UpdateContractorHourPriceRequest(60.0);
 
         String json = objectMapper.writeValueAsString(updateRequest);
 
         Integer contractorId = 2;
 
-        this.mockMvc.perform(put(this.baseUrl + "/contractor/price/{contractorId}",contractorId)
+        this.mockMvc.perform(put(this.baseUrl + "/contractor/hour-price/{contractorId}", contractorId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json).accept(MediaType.APPLICATION_JSON)
                         .header(HttpHeaders.AUTHORIZATION, this.token))
@@ -384,27 +384,27 @@ public class ContractorControllerIntegrationTest {
                 .andExpect(jsonPath("$.code").value(StatusCode.SUCCESS))
                 .andExpect(jsonPath("$.message").value("Update success"));
 
-        this.mockMvc.perform(get(this.baseUrl + "/contractor/{contractorId}",contractorId)
+        this.mockMvc.perform(get(this.baseUrl + "/contractor/{contractorId}", contractorId)
                         .accept(MediaType.APPLICATION_JSON).header(HttpHeaders.AUTHORIZATION, this.token))
                 .andExpect(jsonPath("$.flag").value(true))
                 .andExpect(jsonPath("$.code").value(StatusCode.SUCCESS))
                 .andExpect(jsonPath("$.message").value("Success"))
-                .andExpect(jsonPath("$.data.contractorPrice").value(17000.0));
+                .andExpect(jsonPath("$.data.contractorHourPrice").value(60.0));
 
     }
 
     @Test
-    @DisplayName("Check updateContractorPrice with non-existent id (PUT)")
+    @DisplayName("Check updateContractorHourPrice with non-existent id (PUT)")
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
-    void testUpdateContractorPriceErrorWithNonExistentId() throws Exception {
+    void testUpdateContractorHourPriceErrorWithNonExistentId() throws Exception {
 
-        UpdateContractorPrice updateRequest = new UpdateContractorPrice(17000.0);
+        UpdateContractorHourPriceRequest updateRequest = new UpdateContractorHourPriceRequest(30.0);
 
         String json = objectMapper.writeValueAsString(updateRequest);
 
         Integer contractorId = 10;
 
-        this.mockMvc.perform(put(this.baseUrl + "/contractor/price/{contractorId}",contractorId)
+        this.mockMvc.perform(put(this.baseUrl + "/contractor/hour-price/{contractorId}", contractorId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json).accept(MediaType.APPLICATION_JSON)
                         .header(HttpHeaders.AUTHORIZATION, this.token))
@@ -416,47 +416,318 @@ public class ContractorControllerIntegrationTest {
     }
 
     @Test
-    @DisplayName("Check updateContractorPrice with invalid input (PUT)")
+    @DisplayName("Check updateContractorHourPrice with invalid input (PUT)")
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
-    void testUpdateContractorPriceErrorWithInvalidInput() throws Exception {
+    void testUpdateContractorHourPriceErrorWithInvalidInput() throws Exception {
 
-        UpdateContractorPrice updateRequest = new UpdateContractorPrice(-1.0);
+        UpdateContractorHourPriceRequest updateRequest = new UpdateContractorHourPriceRequest(-1.0);
 
         String json = objectMapper.writeValueAsString(updateRequest);
 
         Integer contractorId = 2;
 
-        this.mockMvc.perform(put(this.baseUrl + "/contractor/price/{contractorId}",contractorId)
+        this.mockMvc.perform(put(this.baseUrl + "/contractor/hour-price/{contractorId}", contractorId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json).accept(MediaType.APPLICATION_JSON)
                         .header(HttpHeaders.AUTHORIZATION, this.token))
                 .andExpect(jsonPath("$.flag").value(false))
                 .andExpect(jsonPath("$.code").value(StatusCode.INVALID_ARGUMENT))
                 .andExpect(jsonPath("$.message")
-                        .value("Contractor price remains the same or the value is incorrect"));
+                        .value("Contractor hour price remains the same or the value is incorrect"));
 
 
     }
 
     @Test
-    @DisplayName("Check updateContractorPrice with the same salary value (PUT)")
+    @DisplayName("Check updateContractorHourPrice with the same salary value (PUT)")
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
-    void testUpdateContractorPriceErrorWithTheSameValue() throws Exception {
+    void testUpdateContractorHourPriceErrorWithTheSameValue() throws Exception {
 
-        UpdateContractorPrice updateRequest = new UpdateContractorPrice(15000.0);
+        UpdateContractorHourPriceRequest updateRequest = new UpdateContractorHourPriceRequest(50.0);
 
         String json = objectMapper.writeValueAsString(updateRequest);
 
         Integer contractorId = 2;
 
-        this.mockMvc.perform(put(this.baseUrl + "/contractor/price/{contractorId}",contractorId)
+        this.mockMvc.perform(put(this.baseUrl + "/contractor/hour-price/{contractorId}", contractorId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json).accept(MediaType.APPLICATION_JSON)
                         .header(HttpHeaders.AUTHORIZATION, this.token))
                 .andExpect(jsonPath("$.flag").value(false))
                 .andExpect(jsonPath("$.code").value(StatusCode.INVALID_ARGUMENT))
                 .andExpect(jsonPath("$.message")
-                        .value("Contractor price remains the same or the value is incorrect"));
+                        .value("Contractor hour price remains the same or the value is incorrect"));
+
+
+    }
+
+
+
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    @Test
+    @DisplayName("Check updateContractorMonthlyHourLimit with valid input (PUT)")
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
+    void testUpdateContractorMonthlyHourLimitSuccess() throws Exception {
+
+        UpdateMonthlyHourLimitRequest updateRequest = new UpdateMonthlyHourLimitRequest(170);
+
+        String json = objectMapper.writeValueAsString(updateRequest);
+
+        Integer contractorId = 2;
+
+        this.mockMvc.perform(put(this.baseUrl + "/contractor/hour-limit/{contractorId}", contractorId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json).accept(MediaType.APPLICATION_JSON)
+                        .header(HttpHeaders.AUTHORIZATION, this.token))
+                .andExpect(jsonPath("$.flag").value(true))
+                .andExpect(jsonPath("$.code").value(StatusCode.SUCCESS))
+                .andExpect(jsonPath("$.message").value("Update success"));
+
+        this.mockMvc.perform(get(this.baseUrl + "/contractor/{contractorId}", contractorId)
+                        .accept(MediaType.APPLICATION_JSON).header(HttpHeaders.AUTHORIZATION, this.token))
+                .andExpect(jsonPath("$.flag").value(true))
+                .andExpect(jsonPath("$.code").value(StatusCode.SUCCESS))
+                .andExpect(jsonPath("$.message").value("Success"))
+                .andExpect(jsonPath("$.data.monthlyHourLimit").value(170.0));
+
+    }
+
+    @Test
+    @DisplayName("Check updateContractorMonthlyHourLimit with non-existent id (PUT)")
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
+    void testUpdateContractorMonthlyHourLimitErrorWithNonExistentId() throws Exception {
+
+        UpdateMonthlyHourLimitRequest updateRequest = new UpdateMonthlyHourLimitRequest(170);
+
+        String json = objectMapper.writeValueAsString(updateRequest);
+
+        Integer contractorId = 10;
+
+        this.mockMvc.perform(put(this.baseUrl + "/contractor/hour-limit/{contractorId}", contractorId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json).accept(MediaType.APPLICATION_JSON)
+                        .header(HttpHeaders.AUTHORIZATION, this.token))
+                .andExpect(jsonPath("$.flag").value(false))
+                .andExpect(jsonPath("$.code").value(StatusCode.NOT_FOUND))
+                .andExpect(jsonPath("$.message").value("Could not find contractor with Id " + contractorId));
+
+
+    }
+
+    @Test
+    @DisplayName("Check updateContractorMonthlyHourLimit with invalid input (PUT)")
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
+    void testUpdateContractorMonthlyHourLimitErrorWithInvalidInput() throws Exception {
+
+        UpdateMonthlyHourLimitRequest updateRequest = new UpdateMonthlyHourLimitRequest(-1);
+
+        String json = objectMapper.writeValueAsString(updateRequest);
+
+        Integer contractorId = 2;
+
+        this.mockMvc.perform(put(this.baseUrl + "/contractor/hour-limit/{contractorId}", contractorId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json).accept(MediaType.APPLICATION_JSON)
+                        .header(HttpHeaders.AUTHORIZATION, this.token))
+                .andExpect(jsonPath("$.flag").value(false))
+                .andExpect(jsonPath("$.code").value(StatusCode.INVALID_ARGUMENT))
+                .andExpect(jsonPath("$.message")
+                        .value("Contractor hour limit remains the same or the value is incorrect"));
+
+
+    }
+
+    @Test
+    @DisplayName("Check updateContractorMonthlyHourLimit with the same salary value (PUT)")
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
+    void testUpdateContractorMonthlyHourLimitErrorWithTheSameValue() throws Exception {
+
+        UpdateMonthlyHourLimitRequest updateRequest = new UpdateMonthlyHourLimitRequest(168);
+
+        String json = objectMapper.writeValueAsString(updateRequest);
+
+        Integer contractorId = 2;
+
+        this.mockMvc.perform(put(this.baseUrl + "/contractor/hour-limit/{contractorId}", contractorId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json).accept(MediaType.APPLICATION_JSON)
+                        .header(HttpHeaders.AUTHORIZATION, this.token))
+                .andExpect(jsonPath("$.flag").value(false))
+                .andExpect(jsonPath("$.code").value(StatusCode.INVALID_ARGUMENT))
+                .andExpect(jsonPath("$.message")
+                        .value("Contractor hour limit remains the same or the value is incorrect"));
+
+
+    }
+
+    @Test
+    @DisplayName("Check updateContractorOvertimeValue with valid input (PUT)")
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
+    void testUpdateContractorOvertimeValueSuccess() throws Exception {
+
+        UpdateIsContractorOvertimePaid updateRequest = new UpdateIsContractorOvertimePaid(true);
+
+        String json = objectMapper.writeValueAsString(updateRequest);
+
+        Integer contractorId = 2;
+
+        this.mockMvc.perform(put(this.baseUrl + "/contractor/overtime/{contractorId}", contractorId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json).accept(MediaType.APPLICATION_JSON)
+                        .header(HttpHeaders.AUTHORIZATION, this.token))
+                .andExpect(jsonPath("$.flag").value(true))
+                .andExpect(jsonPath("$.code").value(StatusCode.SUCCESS))
+                .andExpect(jsonPath("$.message").value("Update success"));
+
+        this.mockMvc.perform(get(this.baseUrl + "/contractor/{contractorId}", contractorId)
+                        .accept(MediaType.APPLICATION_JSON).header(HttpHeaders.AUTHORIZATION, this.token))
+                .andExpect(jsonPath("$.flag").value(true))
+                .andExpect(jsonPath("$.code").value(StatusCode.SUCCESS))
+                .andExpect(jsonPath("$.message").value("Success"))
+                .andExpect(jsonPath("$.data.isOvertimePaid").value(true));
+
+    }
+
+    @Test
+    @DisplayName("Check updateContractorOvertimeValue with non-existent id (PUT)")
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
+    void testUpdateContractorOvertimeValueErrorWithNonExistentId() throws Exception {
+
+        UpdateIsContractorOvertimePaid updateRequest = new UpdateIsContractorOvertimePaid(false);
+
+        String json = objectMapper.writeValueAsString(updateRequest);
+
+        Integer contractorId = 10;
+
+        this.mockMvc.perform(put(this.baseUrl + "/contractor/overtime/{contractorId}", contractorId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json).accept(MediaType.APPLICATION_JSON)
+                        .header(HttpHeaders.AUTHORIZATION, this.token))
+                .andExpect(jsonPath("$.flag").value(false))
+                .andExpect(jsonPath("$.code").value(StatusCode.NOT_FOUND))
+                .andExpect(jsonPath("$.message").value("Could not find contractor with Id " + contractorId));
+
+
+    }
+
+    @Test
+    @DisplayName("Check updateContractorOvertimeValue with invalid input (PUT)")
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
+    void testUpdateContractorOvertimeValueErrorWithInvalidInput() throws Exception {
+
+        UpdateIsContractorOvertimePaid updateRequest = new UpdateIsContractorOvertimePaid(null);
+
+        String json = objectMapper.writeValueAsString(updateRequest);
+
+        Integer contractorId = 2;
+
+        this.mockMvc.perform(put(this.baseUrl + "/contractor/overtime/{contractorId}", contractorId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json).accept(MediaType.APPLICATION_JSON)
+                        .header(HttpHeaders.AUTHORIZATION, this.token))
+                .andExpect(jsonPath("$.flag").value(false))
+                .andExpect(jsonPath("$.code").value(StatusCode.INVALID_ARGUMENT));
+
+
+    }
+
+    /////////////
+
+
+    @Test
+    @DisplayName("Check updateContractorContractType with valid input (PUT)")
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
+    void testUpdateContractorContractTypeSuccess() throws Exception {
+
+        UpdateContractorContractTypeRequest updateRequest = new UpdateContractorContractTypeRequest(1);
+
+        String json = objectMapper.writeValueAsString(updateRequest);
+
+        Integer contractorId = 2;
+
+        this.mockMvc.perform(put(this.baseUrl + "/contractor/contract-type/{contractorId}", contractorId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json).accept(MediaType.APPLICATION_JSON)
+                        .header(HttpHeaders.AUTHORIZATION, this.token))
+                .andExpect(jsonPath("$.flag").value(true))
+                .andExpect(jsonPath("$.code").value(StatusCode.SUCCESS))
+                .andExpect(jsonPath("$.message").value("Update success"));
+
+        this.mockMvc.perform(get(this.baseUrl + "/contractor/{contractorId}", contractorId)
+                        .accept(MediaType.APPLICATION_JSON).header(HttpHeaders.AUTHORIZATION, this.token))
+                .andExpect(jsonPath("$.flag").value(true))
+                .andExpect(jsonPath("$.code").value(StatusCode.SUCCESS))
+                .andExpect(jsonPath("$.message").value("Success"))
+                .andExpect(jsonPath("$.data.contractType").value(ContractType.fromValue(updateRequest.contractType()).toString()));
+
+    }
+
+    @Test
+    @DisplayName("Check updateContractorContractType with non-existent id (PUT)")
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
+    void testUpdateContractorContractTypeErrorWithNonExistentId() throws Exception {
+
+        UpdateContractorContractTypeRequest updateRequest = new UpdateContractorContractTypeRequest(1);
+
+        String json = objectMapper.writeValueAsString(updateRequest);
+
+        Integer contractorId = 10;
+
+        this.mockMvc.perform(put(this.baseUrl + "/contractor/contract-type/{contractorId}", contractorId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json).accept(MediaType.APPLICATION_JSON)
+                        .header(HttpHeaders.AUTHORIZATION, this.token))
+                .andExpect(jsonPath("$.flag").value(false))
+                .andExpect(jsonPath("$.code").value(StatusCode.NOT_FOUND))
+                .andExpect(jsonPath("$.message").value("Could not find contractor with Id " + contractorId));
+
+
+    }
+
+    @Test
+    @DisplayName("Check updateContractorContractType with invalid input (PUT)")
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
+    void testUpdateContractorContractTypeErrorWithInvalidInput() throws Exception {
+
+        UpdateContractorContractTypeRequest updateRequest = new UpdateContractorContractTypeRequest(10);
+
+        String json = objectMapper.writeValueAsString(updateRequest);
+
+        Integer contractorId = 2;
+
+        this.mockMvc.perform(put(this.baseUrl + "/contractor/contract-type/{contractorId}", contractorId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json).accept(MediaType.APPLICATION_JSON)
+                        .header(HttpHeaders.AUTHORIZATION, this.token))
+                .andExpect(jsonPath("$.flag").value(false))
+                .andExpect(jsonPath("$.code").value(StatusCode.INVALID_ARGUMENT))
+                .andExpect(jsonPath("$.message")
+                        .value("Invalid ContractType value: 10"));
+
+
+    }
+
+    @Test
+    @DisplayName("Check updateContractorOvertimeValue with the same salary value (PUT)")
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
+    void testUpdateContractorContractTypeErrorWithTheSameValue() throws Exception {
+
+        UpdateContractorContractTypeRequest updateRequest = new UpdateContractorContractTypeRequest(2);
+
+        String json = objectMapper.writeValueAsString(updateRequest);
+
+        Integer contractorId = 2;
+
+        this.mockMvc.perform(put(this.baseUrl + "/contractor/contract-type/{contractorId}", contractorId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json).accept(MediaType.APPLICATION_JSON)
+                        .header(HttpHeaders.AUTHORIZATION, this.token))
+                .andExpect(jsonPath("$.flag").value(false))
+                .andExpect(jsonPath("$.code").value(StatusCode.INVALID_ARGUMENT))
+                .andExpect(jsonPath("$.message")
+                        .value("Given Contract type is the same"));
+
 
 
     }

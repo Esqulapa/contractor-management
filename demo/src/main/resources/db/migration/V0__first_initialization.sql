@@ -10,7 +10,13 @@ CREATE TABLE contractor
     id INTEGER DEFAULT nextval('contractor_id_sequence') PRIMARY KEY,
     first_name VARCHAR(255),
     last_name VARCHAR(255),
-    salary DOUBLE PRECISION
+    contract_type VARCHAR(255),
+    monthly_earnings DOUBLE PRECISION,
+    hourly_rate DOUBLE PRECISION,
+    monthly_hour_limit INTEGER,
+    contractor_hour_price DOUBLE PRECISION,
+    overtime_multiplier DOUBLE PRECISION,
+    is_overtime_paid BOOLEAN
     );
 
 CREATE SEQUENCE contractor_billing_id_sequence
@@ -25,7 +31,7 @@ CREATE TABLE contractor_billing
     contractor_id INTEGER REFERENCES contractor(id),
     worked_hours DOUBLE PRECISION,
     year INTEGER,
-    month SMALLINT CHECK (month >= 0 AND month <= 11),
+    month VARCHAR(10),
     payment NUMERIC(19, 2),
 
     CONSTRAINT fk_contractor_billing_contractor

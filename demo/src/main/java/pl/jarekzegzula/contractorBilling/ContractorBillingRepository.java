@@ -13,5 +13,5 @@ public interface ContractorBillingRepository extends JpaRepository<ContractorBil
 
     Optional<List<ContractorBilling>> findByYearAndMonth(Year year, Month month);
 
-    boolean existsByContractor_IdAndYearAndMonth(Integer id, Year year, Month month);
+    boolean existsByContractorIdAndYearAndMonth(Integer id, Year year, Month month);
 }

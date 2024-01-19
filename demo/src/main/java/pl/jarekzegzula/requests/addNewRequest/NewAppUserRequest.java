@@ -1,4 +1,4 @@
-package pl.jarekzegzula.requests;
+package pl.jarekzegzula.requests.addNewRequest;
 
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;

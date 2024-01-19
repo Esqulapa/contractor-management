@@ -1,4 +1,4 @@
-package pl.jarekzegzula.requests;
+package pl.jarekzegzula.requests.updateRequest;
 
 import jakarta.validation.constraints.NotNull;
 import org.springframework.web.bind.annotation.RequestParam;

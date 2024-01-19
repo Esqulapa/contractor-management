@@ -13,7 +13,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
-import pl.jarekzegzula.requests.NewAppUserRequest;
+import pl.jarekzegzula.requests.addNewRequest.NewAppUserRequest;
 import pl.jarekzegzula.system.StatusCode;
 import pl.jarekzegzula.system.exception.ObjectNotFoundException;
 

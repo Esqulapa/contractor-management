@@ -105,6 +105,12 @@ public class ExceptionHandlerAdvice {
         return new Result(false, StatusCode.INVALID_ARGUMENT, ex.getMessage());
     }
 
+    @ExceptionHandler(IllegalContractTypeArgument.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    Result handleIllegalContractTypeArgument(IllegalContractTypeArgument ex) {
+        return new Result(false, StatusCode.INVALID_ARGUMENT, ex.getMessage());
+    }
+
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     Result handleOtherException(Exception ex) {

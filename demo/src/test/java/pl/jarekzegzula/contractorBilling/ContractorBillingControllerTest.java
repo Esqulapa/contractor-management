@@ -12,26 +12,24 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import pl.jarekzegzula.contract.ContractType;
 import pl.jarekzegzula.contractor.Contractor;
-import pl.jarekzegzula.contractorBilling.Dto.ContractorBillingDTO;
-import pl.jarekzegzula.requests.NewContractorBillingRequest;
-import pl.jarekzegzula.requests.UpdateContractorHoursRequest;
+import pl.jarekzegzula.contractorBilling.dto.ContractorBillingDTO;
+import pl.jarekzegzula.requests.addNewRequest.NewContractorBillingRequest;
+import pl.jarekzegzula.requests.updateRequest.UpdateContractorBillingHoursRequest;
 import pl.jarekzegzula.system.StatusCode;
 import pl.jarekzegzula.system.exception.ObjectNotFoundException;
 
 import java.time.Month;
 import java.time.Year;
-import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static pl.jarekzegzula.contractorBilling.ContractorBillingService.countWorkingHoursWithoutWeekendsInMonth;
 
 @SpringBootTest
 @AutoConfigureMockMvc(addFilters = false)
@@ -57,26 +55,36 @@ class ContractorBillingControllerTest {
     void setUp() {
 
         ArrayList<Contractor> contractors = new ArrayList<>();
+
         Contractor contractor1 = new Contractor();
         contractor1.setId(1);
         contractor1.setFirstName("Marian");
         contractor1.setLastName("Paździoch");
-        contractor1.setSalary(1600.0);
+        contractor1.setContractType(ContractType.CONTRACT_B2B);
+        contractor1.setMonthlyEarnings(59.53*168);
+        contractor1.setHourlyRate(59.53);
+        contractor1.setMonthlyHourLimit(168);
+        contractor1.setIsOvertimePaid(true);
+        contractor1.setOvertimeMultiplier(1.5);
+        contractor1.setContractorHourPrice(80.0);
         contractors.add(contractor1);
 
         Contractor contractor2 = new Contractor();
         contractor2.setId(2);
         contractor2.setFirstName("Ryszard");
         contractor2.setLastName("Peja");
-        contractor2.setSalary(1300.0);
+        contractor2.setContractType(ContractType.CONTRACT_B2B);
+        contractor2.setMonthlyEarnings(59.53*168);
+        contractor2.setHourlyRate(59.53);
+        contractor2.setMonthlyHourLimit(168);
+        contractor2.setIsOvertimePaid(true);
+        contractor2.setOvertimeMultiplier(1.5);
+        contractor2.setContractorHourPrice(80.0);
         contractors.add(contractor2);
 
-        ContractorBilling contractorBilling1 = new ContractorBilling();
+        NewContractorBillingRequest newContractorBillingRequest = new NewContractorBillingRequest(1, 169.0, Year.of(2023), Month.MARCH);
+        ContractorBilling contractorBilling1 = new ContractorBilling(newContractorBillingRequest,contractor1);
         contractorBilling1.setId(1);
-        contractorBilling1.setContractor(contractors.get(0));
-        contractorBilling1.setWorkedHours(160.0);
-        contractorBilling1.setYear(Year.of(2023));
-        contractorBilling1.setMonth(Month.MARCH);
 
 
         ContractorBilling contractorBilling2 = new ContractorBilling();
@@ -146,63 +154,17 @@ class ContractorBillingControllerTest {
     }
 
     @Test
-    void getContractorsWorkedHoursInGivenYearMonth() throws Exception {
-        Year year = Year.of(2023);
-        Month month = Month.MARCH;
-
-        List<ContractorBilling> contractorByYearAndMonth = new ArrayList<>();
-        contractorByYearAndMonth.add(this.contractorBillings.get(0));
-        List<ContractorBillingDTO> contractorByYearAndMonthDto = contractorByYearAndMonth.stream().map(ContractorBillingDTO::new).toList();
-
-        ContractorBillingReportByMonth contractorBillingReportByMonth =
-                new ContractorBillingReportByMonth(YearMonth.of(2023
-                        , 3)
-                        , countWorkingHoursWithoutWeekendsInMonth(Year.of(2023), Month.MARCH)
-                        , contractorByYearAndMonthDto);
-
-
-        given(contractorBillingService.getContractorsWorkedHoursInGivenMonth(Year.of(2023),Month.MARCH))
-                .willReturn(contractorBillingReportByMonth);
-
-        mockMvc.perform(get(this.baseUrl + "/contractor/billing/report")
-                .param("year", String.valueOf(year.getValue()))
-                .param("month", month.name()))
-                .andExpect(jsonPath("$.flag").value(true))
-                .andExpect(jsonPath("$.code").value(StatusCode.SUCCESS))
-                .andExpect(jsonPath("$.message").value("Success"))
-                .andExpect(jsonPath("$.data").exists());
-    }
-    @Test
-    void getContractorsWorkedHoursInGivenYearMonthNotFound() throws Exception {
-
-        Year year = Year.of(2023);
-        Month month = Month.MARCH;
-
-
-        given(contractorBillingService.getContractorsWorkedHoursInGivenMonth(Year.of(2023),Month.MARCH))
-                .willThrow(new ObjectNotFoundException("contractor billings", year.toString(), month.name()));
-
-        mockMvc.perform(get(this.baseUrl + "/contractor/billing/report")
-                        .param("year", String.valueOf(year.getValue()))
-                        .param("month", month.name()))
-                .andExpect(jsonPath("$.flag").value(false))
-                .andExpect(jsonPath("$.code").value(StatusCode.NOT_FOUND))
-                .andExpect(jsonPath("$.message").value("Could not find contractor billings with given 2023 and MARCH"))
-                .andExpect(jsonPath("$.data").isEmpty());
-    }
-
-    @Test
     void updateContractorWorkedHours() throws Exception {
 
-        UpdateContractorHoursRequest updateContractorHoursRequest = new UpdateContractorHoursRequest(140.0);
+        UpdateContractorBillingHoursRequest updateContractorBillingHoursRequest = new UpdateContractorBillingHoursRequest(140.0);
 
         Integer contractorBillingId = 1;
 
-        String json = objectMapper.writeValueAsString(updateContractorHoursRequest);
+        String json = objectMapper.writeValueAsString(updateContractorBillingHoursRequest);
 
-        doNothing().when(contractorBillingService).updateContractorBillingWorkedHours(updateContractorHoursRequest,contractorBillingId);
+        doNothing().when(contractorBillingService).updateContractorBillingWorkedHours(updateContractorBillingHoursRequest,contractorBillingId);
 
-        mockMvc.perform(put(this.baseUrl + "/contractor/billing/{contractorBillingId}", contractorBillingId)
+        mockMvc.perform(put(this.baseUrl + "/contractor/billing/hours/{contractorBillingId}", contractorBillingId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json))
                 .andExpect(jsonPath("$.flag").value(true))
@@ -252,46 +214,49 @@ class ContractorBillingControllerTest {
     }
 
     @Test
-    void getContractorWorkedHoursInGivenYearMonthTestSuccess() throws Exception {
-        //Given
+    void getContractorBillingsMonthlyReport() throws Exception {
+        Year year = Year.of(2023);
+        Month month = Month.MARCH;
 
         List<ContractorBilling> contractorByYearAndMonth = new ArrayList<>();
-        contractorByYearAndMonth.add(contractorBillings.get(0));
-        List<ContractorBillingDTO> contractorBillingDTOS = contractorByYearAndMonth.stream().map(ContractorBillingDTO::new).toList();
+        contractorByYearAndMonth.add(this.contractorBillings.get(0));
+        List<ContractorBillingDTO> contractorByYearAndMonthDto = contractorByYearAndMonth.stream().map(ContractorBillingDTO::new).toList();
 
         ContractorBillingReportByMonth contractorBillingReportByMonth =
-                new ContractorBillingReportByMonth(YearMonth.of(2023
-                        , 3)
-                        , countWorkingHoursWithoutWeekendsInMonth(Year.of(2023), Month.MARCH)
-                        , contractorBillingDTOS);
+                new ContractorBillingReportByMonth(contractorByYearAndMonthDto,year,month);
 
-        given(contractorBillingService.getContractorsWorkedHoursInGivenMonth(Year.of(2023),Month.MARCH))
+        given(contractorBillingService.getContractorBillingsMonthlyReport(Year.of(2023),Month.MARCH))
                 .willReturn(contractorBillingReportByMonth);
 
         mockMvc.perform(get(this.baseUrl + "/contractor/billing/report")
-                        .param("year", "2023")
-                        .param("month", "MARCH")
-                .accept(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.data").exists())
-                .andExpect(jsonPath("$.data.yearMonth").value("2023-03"))
-                .andExpect(jsonPath("$.data.workingHours").value( 184.0))
-                .andExpect(jsonPath("$.data.contractorBillings[0].workedHours").value(160.0))
-                .andExpect(jsonPath("$.data.contractorBillings[0].id").value( 1 ));
+                        .param("year", String.valueOf(year.getValue()))
+                        .param("month", month.name()))
+                .andExpect(jsonPath("$.flag").value(true))
+                .andExpect(jsonPath("$.code").value(StatusCode.SUCCESS))
+                .andExpect(jsonPath("$.message").value("Success"))
+                .andExpect(jsonPath("$.data").exists());
     }
     @Test
-    void getContractorWorkedHoursInGivenYearMonthTestNotFound() throws Exception {
+    void getContractorBillingsMonthlyReportNotFound() throws Exception {
 
-        doThrow(new ObjectNotFoundException("contractor billings", "2023", "MARCH"))
-                .when(this.contractorBillingService).getContractorsWorkedHoursInGivenMonth(Year.of(2023),Month.MARCH);
+        Year year = Year.of(2023);
+        Month month = Month.MARCH;
+
+
+        given(contractorBillingService.getContractorBillingsMonthlyReport(Year.of(2023),Month.MARCH))
+                .willThrow(new ObjectNotFoundException("contractor billings", year.toString(), month.name()));
 
         mockMvc.perform(get(this.baseUrl + "/contractor/billing/report")
-                    .param("year", "2023")
-                    .param("month", "MARCH")
-                    .accept(MediaType.APPLICATION_JSON))
+                        .param("year", String.valueOf(year.getValue()))
+                        .param("month", month.name()))
                 .andExpect(jsonPath("$.flag").value(false))
                 .andExpect(jsonPath("$.code").value(StatusCode.NOT_FOUND))
-                .andExpect(jsonPath("$.message").value("Could not find contractor billings with given 2023 and MARCH" ));
-
+                .andExpect(jsonPath("$.message").value("Could not find contractor billings with given 2023 and MARCH"))
+                .andExpect(jsonPath("$.data").isEmpty());
     }
+
+
+
+
 
 }

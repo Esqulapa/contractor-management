@@ -1,7 +1,0 @@
-ALTER TABLE contractor
-ADD COLUMN overtime_multiplier DOUBLE PRECISION
-DEFAULT 1.5;
-
-ALTER TABLE contractor
-ADD COLUMN contractor_price DOUBLE PRECISION
-DEFAULT 0.00;

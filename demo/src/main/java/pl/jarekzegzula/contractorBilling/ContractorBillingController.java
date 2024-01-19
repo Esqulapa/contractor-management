@@ -3,9 +3,9 @@ package pl.jarekzegzula.contractorBilling;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import pl.jarekzegzula.contractorBilling.Dto.ContractorBillingDTO;
-import pl.jarekzegzula.requests.NewContractorBillingRequest;
-import pl.jarekzegzula.requests.UpdateContractorHoursRequest;
+import pl.jarekzegzula.contractorBilling.dto.ContractorBillingDTO;
+import pl.jarekzegzula.requests.addNewRequest.NewContractorBillingRequest;
+import pl.jarekzegzula.requests.updateRequest.UpdateContractorBillingHoursRequest;
 import pl.jarekzegzula.system.Result;
 import pl.jarekzegzula.system.StatusCode;
 import pl.jarekzegzula.system.exception.ContractorAlreadyExistInGivenTimeException;
@@ -43,29 +43,29 @@ public class ContractorBillingController {
         return new Result(true,StatusCode.SUCCESS,"Success",contractorBillingService.getContractorBillingById(id));
     }
 
-
     @GetMapping("/report")
-    public Result getContractorsWorkedHoursInGivenYearMonth(
+    public Result getContractorBillingsMonthlyReport(
             @Valid
             @RequestParam("year") Year year,
             @RequestParam("month") Month month) {
         return new Result(true, StatusCode.SUCCESS,"Success"
-                ,contractorBillingService.getContractorsWorkedHoursInGivenMonth(year, month));
-    }
-
-    @PutMapping("{contractorBillingId}")
-    public Result updateContractorBillingWorkedHours(@PathVariable("contractorBillingId") Integer id,
-                                                     @Valid @RequestBody UpdateContractorHoursRequest updateRequest) throws SameHoursOrLessThanZeroException {
-
-        contractorBillingService.updateContractorBillingWorkedHours(updateRequest,id);
-
-        return new Result(true,StatusCode.SUCCESS,"Update success");
+                ,contractorBillingService.getContractorBillingsMonthlyReport(year, month));
     }
 
     @PostMapping
     public Result addContractorBilling(@Valid @RequestBody NewContractorBillingRequest request) throws ContractorAlreadyExistInGivenTimeException {
         contractorBillingService.addNewContractorBilling(request);
         return new Result(true,StatusCode.SUCCESS,"Contractor billing added successfully",request);
+    }
+
+
+    @PutMapping("/hours/{contractorBillingId}")
+    public Result updateContractorBillingWorkedHours(@PathVariable("contractorBillingId") Integer id,
+                                                     @Valid @RequestBody UpdateContractorBillingHoursRequest updateRequest) throws SameHoursOrLessThanZeroException {
+
+        contractorBillingService.updateContractorBillingWorkedHours(updateRequest,id);
+
+        return new Result(true,StatusCode.SUCCESS,"Update success");
     }
 
     @DeleteMapping("{contractorBillingId}")
