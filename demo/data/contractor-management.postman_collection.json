@@ -1,0 +1,577 @@
+{
+	"info": {
+		"_postman_id": "91701993-8043-4fad-9837-8b371e8c2ffc",
+		"name": "contractor-management",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "29118492"
+	},
+	"item": [
+		{
+			"name": "contractors",
+			"item": [
+				{
+					"name": "Get all contractors",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/contractor",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"contractor"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Contractor By Id",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/contractor/10",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"contractor",
+								"10"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Add new contractor",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": " {        \r\n        \"firstName\": \"Rysio\",\r\n        \"lastName\": \"Fazzowski\",\r\n        \"salary\": 2023.00\r\n                   \r\n       \r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/contractor",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"contractor"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update contractor hourly-rate",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "\r\n{\r\n    \"salary\": 1500\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/contractor/2",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"contractor",
+								"2"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update contractor monthly hour limit",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "\r\n{\r\n    \"salary\": 1500\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/contractor/2",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"contractor",
+								"2"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update contractor overtime multiplier",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "\r\n{\r\n    \"salary\": 1500\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/contractor/2",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"contractor",
+								"2"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update contractor hour price",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "\r\n{\r\n    \"salary\": 1500\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/contractor/2",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"contractor",
+								"2"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update contractor is overtime paid",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "\r\n{\r\n    \"salary\": 1500\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/contractor/2",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"contractor",
+								"2"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update contractor contract type",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "\r\n{\r\n    \"salary\": 1500\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/contractor/2",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"contractor",
+								"2"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete contractor",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/contractor/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"contractor",
+								"1"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "ContractorBilling",
+			"item": [
+				{
+					"name": "Get all Contractor Billings",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/contractor/billing",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"contractor",
+								"billing"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get ContractorBilling by Id",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/contractor/billing/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"contractor",
+								"billing",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Contractors by YearMonth",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/contractor/billing/report?year=2023&month=FEBRUARY",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"contractor",
+								"billing",
+								"report"
+							],
+							"query": [
+								{
+									"key": "year",
+									"value": "2023"
+								},
+								{
+									"key": "month",
+									"value": "FEBRUARY"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Add new Contractor Billing",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "  {\r\n        \"id\": \"1\",\r\n        \"workedHours\": 180.0,\r\n        \"year\": 2023,\r\n        \"month\": \"JUNE\"           \r\n       }",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/contractor/billing",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"contractor",
+								"billing"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update ContractorBilling hours",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"workedHours\": 0\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/contractor/billing/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"contractor",
+								"billing",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete ContractorBilling",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/contractor/billing/2",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"contractor",
+								"billing",
+								"2"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "appUser",
+			"item": [
+				{
+					"name": "Get all users",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "localhost:8080/api/v1/users",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"v1",
+								"users"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Register new user",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{        \r\n        \"username\": \"rysio\",\r\n        \"password\": 1234        \r\n        \r\n        \r\n       \r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/users/register",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"users",
+								"register"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login",
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "username",
+									"value": "user",
+									"type": "string"
+								},
+								{
+									"key": "password",
+									"value": "1234",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/users/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"users",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login as new created user",
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "username",
+									"value": "user",
+									"type": "string"
+								},
+								{
+									"key": "password",
+									"value": "1234",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/users/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"users",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "New Request",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/users/dto",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"users",
+								"dto"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "eyJhbGciOiJSUzI1NiJ9.eyJpc3MiOiJzZWxmIiwic3ViIjoidXNlciIsImV4cCI6MTcwNTcwMDk5OSwiaWF0IjoxNzA1NjkzNzk5LCJhdXRob3JpdGllcyI6IlJPTEVfYWRtaW4ifQ.wHcaTwaIAhH0j7blBH5zFx4CR6zuPBatzimPHALvv878VZg3OsS0ESy_mO4mFmzm8RwgDEdAWZZZ4qP7Um9GAv6up3ndc2Lg2wO3c7-6oxZ_pTvqEi9BuFJ6N_uTC0coZPNzm2ouF6OoMqw2by9dyVVP63ks89MME83Q_PSBbxKytXoE77SY2YDGgWJwW7vwyZn_5LHaVHL0jyVXwHMKF5tFtDxYyjak-0vrXI8n90VnsLE0mw5RvhDhY8fQlOg3YA9PaA88aFXHAi4V1Z4_ztJbCSanOGZxdTzNboYj61KpjTm0brga555_lek8MIlmTteaT7DGr0gL03r-n4G_sA",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "localhost:8080/api/v1",
+			"type": "string"
+		}
+	]
+}
