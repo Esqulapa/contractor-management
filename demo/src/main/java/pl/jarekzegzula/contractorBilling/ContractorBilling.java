@@ -1,80 +1,65 @@
 package pl.jarekzegzula.contractorBilling;
 
+import static pl.jarekzegzula.calc.Calculator.*;
+
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
-import org.hibernate.Hibernate;
-import pl.jarekzegzula.contractor.Contractor;
-import pl.jarekzegzula.requests.addNewRequest.NewContractorBillingRequest;
-
 import java.math.BigDecimal;
 import java.time.Month;
 import java.time.Year;
-import java.util.Objects;
-
-import static pl.jarekzegzula.calc.Calculator.*;
-
+import lombok.*;
+import pl.jarekzegzula.contractor.Contractor;
+import pl.jarekzegzula.requests.addNewRequest.NewContractorBillingRequest;
 
 @Getter
 @Setter
+@EqualsAndHashCode
 @ToString
 @NoArgsConstructor
 @Table
 @Entity
 public class ContractorBilling {
-    @Id
-    @SequenceGenerator(
-            name = "contractorBilling_id_sequence",
-            sequenceName = "contractorBilling_id_sequence",
-            allocationSize = 1
-    )
-    @GeneratedValue(
-            strategy = GenerationType.SEQUENCE,
-            generator = "contractorBilling_id_sequence"
-    )
-    private Integer id;
+  @Id
+  @SequenceGenerator(
+      name = "contractorBilling_id_sequence",
+      sequenceName = "contractorBilling_id_sequence",
+      allocationSize = 1)
+  @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "contractorBilling_id_sequence")
+  @Column(name = "id")
+  private Integer id;
 
-    @ManyToOne
-    @JoinColumn(name = "contractor_id")
-    @JsonBackReference
-    private Contractor contractor;
+  @ManyToOne
+  @JoinColumn(name = "contractor_id")
+  @JsonBackReference
+  private Contractor contractor;
 
-    private Double workedHours;
+  @Column(name = "worked_hours")
+  private Double workedHours;
 
-    private Year year;
+  @Column(name = "year")
+  private Year year;
 
-    @Enumerated(EnumType.STRING)
-    private Month month;
+  @Enumerated(EnumType.STRING)
+  @Column(name = "month")
+  private Month month;
 
-    private BigDecimal contractorRemuneration;
+  @Column(name = "contractor_remuneration")
+  private BigDecimal contractorRemuneration;
 
-    private BigDecimal clientCharge;
+  @Column(name = "client_charge")
+  private BigDecimal clientCharge;
 
-    private BigDecimal profit;
+  @Column(name = "profit")
+  private BigDecimal profit;
 
-    public ContractorBilling(NewContractorBillingRequest request,Contractor contractor) {
-        this.contractor = contractor;
-        this.workedHours = request.workedHours();
-        this.year = request.year();
-        this.month = request.month();
-        this.contractorRemuneration = calculateContractorPayment(request.workedHours(), contractor);
-        this.clientCharge = calculateClientsChargeFromContractorHours(request.workedHours(), contractor);
-        this.profit = calculateProfit(clientCharge, contractorRemuneration);
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
-        ContractorBilling that = (ContractorBilling) o;
-        return id != null && Objects.equals(id, that.id);
-    }
-
-    @Override
-    public int hashCode() {
-        return getClass().hashCode();
-    }
+  public ContractorBilling(NewContractorBillingRequest request, Contractor contractor) {
+    this.contractor = contractor;
+    this.workedHours = request.workedHours();
+    this.year = request.year();
+    this.month = request.month();
+    this.contractorRemuneration = calculateContractorPayment(request.workedHours(), contractor);
+    this.clientCharge =
+        calculateClientsChargeFromContractorHours(request.workedHours(), contractor);
+    this.profit = calculateProfit(clientCharge, contractorRemuneration);
+  }
 }

@@ -13,20 +13,21 @@ import pl.jarekzegzula.system.StatusCode;
 @RequestMapping("${api.endpoint.base-url}/users")
 public class AuthController {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(AuthController.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(AuthController.class);
 
-    private final AuthService authService;
+  private final AuthService authService;
 
+  public AuthController(AuthService authService) {
+    this.authService = authService;
+  }
 
-    public AuthController(AuthService authService) {
-        this.authService = authService;
-    }
-
-    @PostMapping("/login")
-    public Result getLoginInfo(Authentication authentication){
-        LOGGER.debug("Authenticated user: '{}'", authentication.getName());
-        return new Result(true, StatusCode.SUCCESS,"User info and JSON Web Token",this.authService.createLoginInfo(authentication));
-
-
-    }
+  @PostMapping("/login")
+  public Result getLoginInfo(Authentication authentication) {
+    LOGGER.debug("Authenticated user: '{}'", authentication.getName());
+    return new Result(
+        true,
+        StatusCode.SUCCESS,
+        "User info and JSON Web Token",
+        this.authService.createLoginInfo(authentication));
+  }
 }

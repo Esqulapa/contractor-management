@@ -26,144 +26,138 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class AppUserServiceTest {
 
-    @Mock
-    AppUserRepository appUserRepository;
+  @Mock AppUserRepository appUserRepository;
 
-    @Mock
-    PasswordEncoder passwordEncoder;
+  @Mock PasswordEncoder passwordEncoder;
 
-    @InjectMocks
-    AppUserService appUserService;
+  @InjectMocks AppUserService appUserService;
 
-    List<AppUser> appUsers;
+  List<AppUser> appUsers;
 
-    @BeforeEach
-    void setUp() {
-        AppUser appUser1 = new AppUser();
-        appUser1.setId(1);
-        appUser1.setUsername("Bobby");
-        appUser1.setPassword("123456");
-        appUser1.setEnabled(true);
-        appUser1.setRoles("admin");
+  @BeforeEach
+  void setUp() {
+    AppUser appUser1 = new AppUser();
+    appUser1.setId(1);
+    appUser1.setUsername("Bobby");
+    appUser1.setPassword("123456");
+    appUser1.setEnabled(true);
+    appUser1.setRoles("admin");
 
-        AppUser appUser2 = new AppUser();
-        appUser2.setId(2);
-        appUser2.setUsername("Zbyszko");
-        appUser2.setPassword("123456");
-        appUser2.setEnabled(true);
-        appUser2.setRoles("user");
+    AppUser appUser2 = new AppUser();
+    appUser2.setId(2);
+    appUser2.setUsername("Zbyszko");
+    appUser2.setPassword("123456");
+    appUser2.setEnabled(true);
+    appUser2.setRoles("user");
 
-        this.appUsers = new ArrayList<>();
-        this.appUsers.add(appUser1);
-        this.appUsers.add(appUser2);
+    this.appUsers = new ArrayList<>();
+    this.appUsers.add(appUser1);
+    this.appUsers.add(appUser2);
+  }
 
-    }
+  @AfterEach
+  void tearDown() {}
 
-    @AfterEach
-    void tearDown() {
-    }
+  @Test
+  void testGetAllUsersSuccess() {
 
-    @Test
-    void testGetAllUsersSuccess() {
+    given(this.appUserRepository.findAll()).willReturn(this.appUsers);
 
-        given(this.appUserRepository.findAll()).willReturn(this.appUsers);
+    List<AppUser> allUsers = this.appUserService.getAllUsers();
 
-        List<AppUser> allUsers = this.appUserService.getAllUsers();
+    assertThat(allUsers.size()).isEqualTo(appUsers.size());
 
-        assertThat(allUsers.size()).isEqualTo(appUsers.size());
+    verify(this.appUserRepository, times(1)).findAll();
+  }
 
-        verify(this.appUserRepository, times(1)).findAll();
-    }
+  @Test
+  void findById() {
+    // Given
+    AppUser user = new AppUser();
+    user.setId(1);
+    user.setUsername("Bobby");
+    user.setPassword("123456");
+    user.setEnabled(true);
+    user.setRoles("admin");
 
-    @Test
-    void findById() {
-        //Given
-        AppUser user = new AppUser();
-        user.setId(1);
-        user.setUsername("Bobby");
-        user.setPassword("123456");
-        user.setEnabled(true);
-        user.setRoles("admin");
+    given(this.appUserRepository.findById(1)).willReturn(Optional.of(user));
 
-        given(this.appUserRepository.findById(1)).willReturn(Optional.of(user));
+    // When
+    AppUser returnedUser = this.appUserService.findById(1);
 
-        //When
-        AppUser returnedUser = this.appUserService.findById(1);
+    // Then
+    assertEquals(returnedUser, user);
+  }
 
-        //Then
-        assertEquals(returnedUser, user);
+  @Test
+  void testAddNewUserSuccess() throws UserAlreadyExistException {
+    // Given
 
+    NewAppUserRequest newAppUserRequest = new NewAppUserRequest("Bobby", "123456");
 
-    }
+    AppUser expectedUser = new AppUser();
+    expectedUser.setUsername("Bobby");
+    expectedUser.setPassword("EncodedPassword");
+    expectedUser.setRoles("admin");
+    expectedUser.setEnabled(true);
 
+    given(appUserRepository.existsByUsername(newAppUserRequest.username())).willReturn(false);
+    given(passwordEncoder.encode(newAppUserRequest.password())).willReturn("EncodedPassword");
 
-    @Test
-    void testAddNewUserSuccess() throws UserAlreadyExistException {
-        //Given
+    // When
+    ArgumentCaptor<AppUser> appUserCaptor = ArgumentCaptor.forClass(AppUser.class);
+    appUserService.addNewUser(newAppUserRequest);
+    verify(appUserRepository).save(appUserCaptor.capture());
+    AppUser capturedAppUser =
+        appUserCaptor.getValue(); // AppUser object captured from save() method
 
-        NewAppUserRequest newAppUserRequest = new NewAppUserRequest("Bobby", "123456");
+    // Then
+    assertEquals(expectedUser, capturedAppUser);
+  }
 
-        AppUser expectedUser = new AppUser();
-        expectedUser.setUsername("Bobby");
-        expectedUser.setPassword("EncodedPassword");
-        expectedUser.setRoles("admin");
-        expectedUser.setEnabled(true);
+  @Test
+  public void testAddNewUserWhenUsernameIsTaken() {
 
-        given(appUserRepository.existsByUsername(newAppUserRequest.username())).willReturn(false);
-        given(passwordEncoder.encode(newAppUserRequest.password())).willReturn("EncodedPassword");
+    NewAppUserRequest newAppUserRequest = new NewAppUserRequest("Bobby", "123456");
 
-        //When
-        ArgumentCaptor<AppUser> appUserCaptor = ArgumentCaptor.forClass(AppUser.class);
-        appUserService.addNewUser(newAppUserRequest);
-        verify(appUserRepository).save(appUserCaptor.capture());
-        AppUser capturedAppUser = appUserCaptor.getValue(); //AppUser object captured from save() method
+    when(appUserRepository.existsByUsername(newAppUserRequest.username())).thenReturn(true);
 
-        //Then
-        assertEquals(expectedUser, capturedAppUser);
+    Throwable userAlreadyExistException =
+        assertThrows(
+            UserAlreadyExistException.class, () -> appUserService.addNewUser(newAppUserRequest));
 
-    }
+    assertThat(userAlreadyExistException)
+        .isInstanceOf(UserAlreadyExistException.class)
+        .hasMessage("Requested username is already taken.");
+  }
 
-    @Test
-    public void testAddNewUserWhenUsernameIsTaken() {
+  @Test
+  void testDeleteSuccess() {
 
-        NewAppUserRequest newAppUserRequest = new NewAppUserRequest("Bobby", "123456");
+    // Given
+    given(this.appUserRepository.findById(1)).willReturn(Optional.of(new AppUser()));
 
+    // When
+    this.appUserService.deleteUserById(1);
 
-        when(appUserRepository.existsByUsername(newAppUserRequest.username())).thenReturn(true);
+    // Then
+    verify(this.appUserRepository, times(1)).deleteById(1);
+  }
 
+  @Test
+  public void testDeleteUserByIdNotFound() {
+    // Given
+    Integer userId = 1;
 
-        Throwable userAlreadyExistException = assertThrows(UserAlreadyExistException.class, () -> appUserService.addNewUser(newAppUserRequest));
+    when(appUserRepository.findById(userId)).thenReturn(Optional.empty());
 
-        assertThat(userAlreadyExistException).isInstanceOf(UserAlreadyExistException.class)
-                .hasMessage("Requested username is already taken.");
-    }
+    // When
+    Throwable thrown =
+        assertThrows(ObjectNotFoundException.class, () -> appUserService.deleteUserById(userId));
 
-    @Test
-    void testDeleteSuccess() {
-
-        //Given
-        given(this.appUserRepository.findById(1)).willReturn(Optional.of(new AppUser()));
-
-        // When
-        this.appUserService.deleteUserById(1);
-
-        // Then
-        verify(this.appUserRepository, times(1)).deleteById(1);
-    }
-
-    @Test
-    public void testDeleteUserByIdNotFound() {
-        //Given
-        Integer userId = 1;
-
-        when(appUserRepository.findById(userId)).thenReturn(Optional.empty());
-
-        //When
-        Throwable thrown = assertThrows(ObjectNotFoundException.class, () -> appUserService.deleteUserById(userId));
-
-        //Then
-        assertThat(thrown).isInstanceOf(ObjectNotFoundException.class).hasMessage("Could not find user with Id " + userId);
-
-    }
-
+    // Then
+    assertThat(thrown)
+        .isInstanceOf(ObjectNotFoundException.class)
+        .hasMessage("Could not find user with Id " + userId);
+  }
 }

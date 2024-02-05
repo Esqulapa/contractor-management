@@ -14,29 +14,30 @@ import java.util.stream.Collectors;
 @Component
 public class JwtProvider {
 
-    private final JwtEncoder jwtEncoder;
+  private final JwtEncoder jwtEncoder;
 
-    public JwtProvider(JwtEncoder jwtEncoder) {
-        this.jwtEncoder = jwtEncoder;
-    }
+  public JwtProvider(JwtEncoder jwtEncoder) {
+    this.jwtEncoder = jwtEncoder;
+  }
 
-    public String createToken(Authentication authentication) {
-        Instant now = Instant.now();
-        long expiresIn = 2;
+  public String createToken(Authentication authentication) {
+    Instant now = Instant.now();
+    long expiresIn = 2;
 
-        String authorities = authentication.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
-                .collect(Collectors.joining(" ")); // space-delimited. ROLE_admin
+    String authorities =
+        authentication.getAuthorities().stream()
+            .map(GrantedAuthority::getAuthority)
+            .collect(Collectors.joining(" ")); // space-delimited. ROLE_admin
 
-        JwtClaimsSet claims = JwtClaimsSet.builder()
-                .issuer("self")
-                .issuedAt(now)
-                .expiresAt(now.plus(expiresIn, ChronoUnit.HOURS))
-                .subject(authentication.getName())
-                .claim("authorities", authorities)
-                .build();
+    JwtClaimsSet claims =
+        JwtClaimsSet.builder()
+            .issuer("self")
+            .issuedAt(now)
+            .expiresAt(now.plus(expiresIn, ChronoUnit.HOURS))
+            .subject(authentication.getName())
+            .claim("authorities", authorities)
+            .build();
 
-
-        return this.jwtEncoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
-    }
+    return this.jwtEncoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
+  }
 }

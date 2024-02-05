@@ -18,54 +18,54 @@ import static pl.jarekzegzula.system.Constants.WORKDAY;
 public class Calculator {
 
 
-    public static Double calculateMonthlyEarningsForContractor(Double hourlyRate,Integer hourLimit){
+  public static Double calculateMonthlyEarningsForContractor(Double hourlyRate,Integer hourLimit){
         return  hourlyRate * hourLimit;
     }
 
-    public static BigDecimal sumBigDecimalFieldFromContractorBillingList(
-            List<ContractorBillingDTO> contractorsByYearAndMonth, Function<ContractorBillingDTO, BigDecimal> fieldExtractor) {
+  public static BigDecimal sumContractorsBillingFinancial(
+            List<ContractorBillingDTO> contractorsByYearAndMonth,
+            Function<ContractorBillingDTO,BigDecimal> fieldExtractor) {
         return contractorsByYearAndMonth
                 .stream()
                 .map(fieldExtractor)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
-    public static BigDecimal calculateContractorPayment(Double workedHours, Contractor contractor) {
+  public static BigDecimal calculateContractorPayment(Double workedHours, Contractor contractor) {
 
-        return switch (contractor.getContractType()) {
-            case CONTRACT_OF_EMPLOYMENT -> calculatePaymentForContractOfEmployment(workedHours, contractor);
-            case CONTRACT_B2B -> calculatePaymentForB2BContract(workedHours, contractor);
-            case CONTRACT_OF_MANDATE -> calculatePaymentForContractOfMandate(workedHours, contractor);
+    return switch (contractor.getContractType()) {
+      case CONTRACT_OF_EMPLOYMENT -> calculatePaymentForContractOfEmployment(workedHours, contractor);
+      case CONTRACT_B2B -> calculatePaymentForB2BContract(workedHours, contractor);
+      case CONTRACT_OF_MANDATE -> calculatePaymentForContractOfMandate(workedHours, contractor);
         };
     }
 
-    public static BigDecimal calculateProfit(BigDecimal clientCharge, BigDecimal contractorRemuneration) {
+  public static BigDecimal calculateProfit(BigDecimal clientCharge, BigDecimal contractorRemuneration) {
         return clientCharge.subtract(contractorRemuneration);
     }
-
-    public static BigDecimal calculateClientsChargeFromContractorHours(Double workedHours, Contractor contractor) {
+  public static BigDecimal calculateClientsChargeFromContractorHours(Double workedHours, Contractor contractor) {
         return BigDecimal.valueOf(workedHours * contractor.getContractorHourPrice());
     }
 
-    public static BigDecimal calculatePaymentForContractOfMandate(Double workedHours, Contractor contractor) {
+  public static BigDecimal calculatePaymentForContractOfMandate(Double workedHours, Contractor contractor) {
         return BigDecimal.valueOf(workedHours * contractor.getHourlyRate()).setScale(2, RoundingMode.HALF_UP);
     }
 
-    public static BigDecimal calculatePaymentForB2BContract(Double workedHours, Contractor contractor) {
-        if (workedHours > contractor.getMonthlyHourLimit() && contractor.getIsOvertimePaid()) {
-            Double overtimeHours = workedHours - contractor.getMonthlyHourLimit();
-            double overtimePayment = overtimeHours * contractor.getHourlyRate() * contractor.getOvertimeMultiplier();
+  public static BigDecimal calculatePaymentForB2BContract(Double workedHours, Contractor contractor) {
+      if (workedHours > contractor.getMonthlyHourLimit() && contractor.getIsOvertimePaid()) {
+          Double overtimeHours = workedHours - contractor.getMonthlyHourLimit();
+          double overtimePayment = overtimeHours * contractor.getHourlyRate() * contractor.getOvertimeMultiplier();
 
-            return BigDecimal
-                    .valueOf(contractor.getMonthlyEarnings() + overtimePayment)
-                    .setScale(2, RoundingMode.HALF_UP);
-        } else
-            return BigDecimal
+          return BigDecimal
+                  .valueOf(contractor.getMonthlyEarnings() + overtimePayment)
+                  .setScale(2, RoundingMode.HALF_UP);
+      } else
+          return BigDecimal
                     .valueOf(workedHours * contractor.getHourlyRate())
                     .setScale(2, RoundingMode.HALF_UP);
-    }
+  }
 
-    public static BigDecimal calculatePaymentForContractOfEmployment(Double workedHours, Contractor contractor) {
+  public static BigDecimal calculatePaymentForContractOfEmployment(Double workedHours, Contractor contractor) {
         if (Objects.equals(contractor.getMonthlyHourLimit().doubleValue(), workedHours)) {
             return BigDecimal.valueOf(contractor.getMonthlyEarnings());
         } else if (workedHours < contractor.getMonthlyHourLimit()) {
@@ -80,8 +80,7 @@ public class Calculator {
                     .setScale(2, RoundingMode.HALF_UP);
         }
     }
-
-    public static Double countWorkingHoursWithoutWeekendsInMonth(Year year, Month month) {
+ public static Double countWorkingHoursWithoutWeekendsInMonth(Year year, Month month) {
 
         double totalWorkingHours = 0.0;
 

@@ -14,19 +14,20 @@ import java.io.IOException;
 @Component
 public class CustomBasicAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
-    private final HandlerExceptionResolver resolver;
+  private final HandlerExceptionResolver resolver;
 
+  public CustomBasicAuthenticationEntryPoint(
+      @Qualifier("handlerExceptionResolver") HandlerExceptionResolver resolver) {
+    this.resolver = resolver;
+  }
 
-    public CustomBasicAuthenticationEntryPoint(@Qualifier("handlerExceptionResolver") HandlerExceptionResolver resolver) {
-        this.resolver = resolver;
-    }
-
-    @Override
-    public void commence(HttpServletRequest request,
-                         HttpServletResponse response,
-                         AuthenticationException authException) throws IOException, ServletException {
-        response.addHeader("WWW-Authenticate","Basic realm=\"Realm\"");
-        this.resolver.resolveException(request, response, null, authException);
-
-    }
+  @Override
+  public void commence(
+      HttpServletRequest request,
+      HttpServletResponse response,
+      AuthenticationException authException)
+      throws IOException, ServletException {
+    response.addHeader("WWW-Authenticate", "Basic realm=\"Realm\"");
+    this.resolver.resolveException(request, response, null, authException);
+  }
 }

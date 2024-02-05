@@ -1,20 +1,18 @@
 package pl.jarekzegzula.contractor;
 
+import static pl.jarekzegzula.calc.Calculator.calculateMonthlyEarningsForContractor;
+
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
+import java.util.List;
 import lombok.*;
-import org.hibernate.Hibernate;
 import pl.jarekzegzula.contract.ContractType;
 import pl.jarekzegzula.contractorBilling.ContractorBilling;
 import pl.jarekzegzula.requests.addNewRequest.NewContractorRequest;
 
-import java.util.List;
-import java.util.Objects;
-
-import static pl.jarekzegzula.calc.Calculator.calculateMonthlyEarningsForContractor;
-
 @Getter
 @Setter
+@EqualsAndHashCode
 @ToString
 @RequiredArgsConstructor
 @Entity
@@ -30,26 +28,35 @@ public class Contractor {
             strategy = GenerationType.SEQUENCE,
             generator = "contractor_id_sequence"
     )
+    @Column(name = "id")
     private Integer id;
 
+    @Column(name = "first_name")
     private String firstName;
 
+    @Column(name = "last_name")
     private String lastName;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "contract_type")
     private ContractType contractType;
 
+    @Column(name = "monthly_earnings")
     private Double monthlyEarnings;
 
+    @Column(name = "hourly_rate")
     private Double hourlyRate;
 
+    @Column(name = "monthly_hour_limit")
     private Integer monthlyHourLimit;
 
+    @Column(name = "is_overtime_paid")
     private Boolean isOvertimePaid;
 
+    @Column(name = "overtime_multiplier")
     private Double overtimeMultiplier;
 
+    @Column(name = "contractor_hour_price")
     private Double contractorHourPrice;
 
     @OneToMany(mappedBy = "contractor", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -65,20 +72,8 @@ public class Contractor {
         this.monthlyHourLimit = request.monthlyHourLimit();
         this.isOvertimePaid = request.isOvertimePaid();
         this.overtimeMultiplier = request.overtimeMultiplier();
-        this.monthlyEarnings = calculateMonthlyEarningsForContractor(request.hourlyRate(),request.monthlyHourLimit());
+        this.monthlyEarnings = calculateMonthlyEarningsForContractor(request.hourlyRate(), request.monthlyHourLimit());
         this.contractorHourPrice = request.contractorHourPrice();
     }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
-        Contractor that = (Contractor) o;
-        return id != null && Objects.equals(id, that.id);
-    }
-
-    @Override
-    public int hashCode() {
-        return getClass().hashCode();
-    }
+    
 }

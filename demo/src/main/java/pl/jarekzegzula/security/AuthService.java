@@ -12,26 +12,26 @@ import java.util.Map;
 @Service
 public class AuthService {
 
-    private final JwtProvider jwtProvider;
-    private final AppUserToAppUserDtoConverter appUserToAppUserDtoConverter;
+  private final JwtProvider jwtProvider;
+  private final AppUserToAppUserDtoConverter appUserToAppUserDtoConverter;
 
-    public AuthService(JwtProvider jwtProvider, AppUserToAppUserDtoConverter appUserToAppUserDtoConverter) {
-        this.jwtProvider = jwtProvider;
-        this.appUserToAppUserDtoConverter = appUserToAppUserDtoConverter;
-    }
+  public AuthService(
+      JwtProvider jwtProvider, AppUserToAppUserDtoConverter appUserToAppUserDtoConverter) {
+    this.jwtProvider = jwtProvider;
+    this.appUserToAppUserDtoConverter = appUserToAppUserDtoConverter;
+  }
 
-    public Map<String, Object> createLoginInfo(Authentication authentication) {
+  public Map<String, Object> createLoginInfo(Authentication authentication) {
 
-        AppUser appUser = (AppUser) authentication.getPrincipal();
-        AppUserDto convertedUser = this.appUserToAppUserDtoConverter.convert(appUser);
+    AppUser appUser = (AppUser) authentication.getPrincipal();
+    AppUserDto convertedUser = this.appUserToAppUserDtoConverter.convert(appUser);
 
-        String token = this.jwtProvider.createToken(authentication);
+    String token = this.jwtProvider.createToken(authentication);
 
-        Map<String,Object> loginResultMap = new HashMap<>();
-        loginResultMap.put("userInfo", convertedUser);
-        loginResultMap.put("token", token);
+    Map<String, Object> loginResultMap = new HashMap<>();
+    loginResultMap.put("userInfo", convertedUser);
+    loginResultMap.put("token", token);
 
-
-        return loginResultMap;
-    }
+    return loginResultMap;
+  }
 }

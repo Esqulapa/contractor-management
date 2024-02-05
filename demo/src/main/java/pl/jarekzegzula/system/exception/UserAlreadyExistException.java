@@ -4,7 +4,7 @@ import jakarta.security.auth.message.AuthException;
 
 public class UserAlreadyExistException extends AuthException {
 
-    public UserAlreadyExistException(String msg) {
-        super(msg);
-    }
+  public UserAlreadyExistException(String msg) {
+    super(msg);
+  }
 }

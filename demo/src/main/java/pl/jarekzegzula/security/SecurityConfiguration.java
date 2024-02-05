@@ -35,90 +35,102 @@ import java.security.interfaces.RSAPublicKey;
 @EnableWebSecurity
 public class SecurityConfiguration {
 
-    @Value("${api.endpoint.base-url}")
-    private String baseUrl;
+  @Value("${api.endpoint.base-url}")
+  private String baseUrl;
 
-    private final RSAPublicKey publicKey;
+  private final RSAPublicKey publicKey;
 
-    private final RSAPrivateKey privateKey;
+  private final RSAPrivateKey privateKey;
 
-    private final CustomBasicAuthenticationEntryPoint customBasicAuthenticationEntryPoint;
+  private final CustomBasicAuthenticationEntryPoint customBasicAuthenticationEntryPoint;
 
-    private final CustomBearerTokenAuthenticationEntryPoint customBearerTokenAuthenticationEntryPoint;
+  private final CustomBearerTokenAuthenticationEntryPoint customBearerTokenAuthenticationEntryPoint;
 
-    private final CustomBearerTokenAccessDeniedHandler customBearerTokenAccessDeniedHandler;
+  private final CustomBearerTokenAccessDeniedHandler customBearerTokenAccessDeniedHandler;
 
+  public SecurityConfiguration(
+      CustomBasicAuthenticationEntryPoint customBasicAuthenticationEntryPoint,
+      CustomBearerTokenAuthenticationEntryPoint customBearerTokenAuthenticationEntryPoint,
+      CustomBearerTokenAccessDeniedHandler customBearerTokenAccessDeniedHandler)
+      throws NoSuchAlgorithmException {
+    this.customBasicAuthenticationEntryPoint = customBasicAuthenticationEntryPoint;
+    this.customBearerTokenAuthenticationEntryPoint = customBearerTokenAuthenticationEntryPoint;
+    this.customBearerTokenAccessDeniedHandler = customBearerTokenAccessDeniedHandler;
 
-    public SecurityConfiguration(CustomBasicAuthenticationEntryPoint customBasicAuthenticationEntryPoint, CustomBearerTokenAuthenticationEntryPoint customBearerTokenAuthenticationEntryPoint, CustomBearerTokenAccessDeniedHandler customBearerTokenAccessDeniedHandler) throws NoSuchAlgorithmException {
-        this.customBasicAuthenticationEntryPoint = customBasicAuthenticationEntryPoint;
-        this.customBearerTokenAuthenticationEntryPoint = customBearerTokenAuthenticationEntryPoint;
-        this.customBearerTokenAccessDeniedHandler = customBearerTokenAccessDeniedHandler;
+    KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance(KEYPAIR_ALGORITHM);
+    keyPairGenerator.initialize(KEYPAIR_KEY_SIZE);
+    KeyPair keyPair = keyPairGenerator.generateKeyPair();
+    this.publicKey = (RSAPublicKey) keyPair.getPublic();
+    this.privateKey = (RSAPrivateKey) keyPair.getPrivate();
+  }
 
-        KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance(KEYPAIR_ALGORITHM);
-        keyPairGenerator.initialize(KEYPAIR_KEY_SIZE);
-        KeyPair keyPair = keyPairGenerator.generateKeyPair();
-        this.publicKey = (RSAPublicKey) keyPair.getPublic();
-        this.privateKey = (RSAPrivateKey) keyPair.getPrivate();
+  @Bean
+  public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    return http.authorizeHttpRequests(
+            authorizeHttpRequests ->
+                authorizeHttpRequests
+                    .requestMatchers(HttpMethod.GET, this.baseUrl + "/contractor")
+                    .hasAuthority("ROLE_admin")
+                    .requestMatchers(HttpMethod.GET, this.baseUrl + "/contractor/**")
+                    .hasAuthority("ROLE_admin")
+                    .requestMatchers(HttpMethod.POST, this.baseUrl + "/users/register")
+                    .permitAll()
+                    .requestMatchers(HttpMethod.GET, this.baseUrl + "/users/dto")
+                    .permitAll()
+                    .requestMatchers(HttpMethod.PUT, this.baseUrl + "/users/**")
+                    .hasAuthority("ROLE_admin")
+                    .requestMatchers(HttpMethod.DELETE, this.baseUrl + "/users/**")
+                    .hasAuthority("ROLE_admin")
+                    .anyRequest()
+                    .authenticated())
+        .csrf(AbstractHttpConfigurer::disable)
+        .httpBasic(
+            httpBasic ->
+                httpBasic.authenticationEntryPoint(this.customBasicAuthenticationEntryPoint))
+        .oauth2ResourceServer(
+            (oauth2) ->
+                oauth2
+                    .jwt()
+                    .and()
+                    .authenticationEntryPoint(this.customBearerTokenAuthenticationEntryPoint)
+                    .accessDeniedHandler(this.customBearerTokenAccessDeniedHandler))
+        .sessionManagement(
+            sessionManagement ->
+                sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+        .build();
+  }
 
-    }
+  @Bean
+  public PasswordEncoder passwordEncoder() {
+    return new BCryptPasswordEncoder(BCRYPT_PASSWORD_STRENGTH);
+  }
 
+  @Bean
+  public JwtEncoder jwtEncoder() {
+    JWK jwk = new RSAKey.Builder(this.publicKey).privateKey(privateKey).build();
+    JWKSource<SecurityContext> jwkSet = new ImmutableJWKSet<>(new JWKSet(jwk));
+    return new NimbusJwtEncoder(jwkSet);
+  }
 
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        return http
-                .authorizeHttpRequests(authorizeHttpRequests -> authorizeHttpRequests
-                        .requestMatchers(HttpMethod.GET, this.baseUrl + "/contractor").permitAll()
-                        .requestMatchers(HttpMethod.GET, this.baseUrl + "/contractor/**").hasAuthority("ROLE_admin")
-                        .requestMatchers(HttpMethod.POST, this.baseUrl + "/users").permitAll()
-                        .requestMatchers(HttpMethod.POST, this.baseUrl + "/users/**").permitAll()
-                        .requestMatchers(HttpMethod.PUT, this.baseUrl + "/users/**").hasAuthority("ROLE_admin")
-                        .requestMatchers(HttpMethod.DELETE, this.baseUrl + "/users/**").hasAuthority("ROLE_admin")
-                        .anyRequest().authenticated())
-                .csrf(AbstractHttpConfigurer::disable)
-                .httpBasic(httpBasic -> httpBasic.authenticationEntryPoint(this.customBasicAuthenticationEntryPoint))
-                .oauth2ResourceServer((oauth2) -> oauth2.jwt().and()
-                        .authenticationEntryPoint(this.customBearerTokenAuthenticationEntryPoint)
-                        .accessDeniedHandler(this.customBearerTokenAccessDeniedHandler)
+  @Bean
+  public JwtDecoder jwtDecoder() {
+    return NimbusJwtDecoder.withPublicKey(this.publicKey).build();
+  }
 
-                )
-                .sessionManagement(sessionManagement -> sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .build();
+  @Bean
+  public JwtAuthenticationConverter jwtAuthenticationConverter() {
+    JwtGrantedAuthoritiesConverter jwtGrantedAuthoritiesConverter =
+        new JwtGrantedAuthoritiesConverter();
 
-    }
+    jwtGrantedAuthoritiesConverter.setAuthoritiesClaimName("authorities");
 
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder(BCRYPT_PASSWORD_STRENGTH);
-    }
+    jwtGrantedAuthoritiesConverter.setAuthorityPrefix(
+        "");
 
+    JwtAuthenticationConverter jwtAuthenticationConverter = new JwtAuthenticationConverter();
 
-    @Bean
-    public JwtEncoder jwtEncoder(){
-        JWK jwk = new RSAKey.Builder(this.publicKey).privateKey(privateKey).build();
-        JWKSource<SecurityContext> jwkSet = new ImmutableJWKSet<>(new JWKSet(jwk));
-        return new NimbusJwtEncoder(jwkSet);
-    }
+    jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(jwtGrantedAuthoritiesConverter);
 
-    @Bean
-    public JwtDecoder jwtDecoder(){
-        return NimbusJwtDecoder.withPublicKey(this.publicKey).build();
-    }
-
-    @Bean
-    public JwtAuthenticationConverter jwtAuthenticationConverter(){
-        JwtGrantedAuthoritiesConverter jwtGrantedAuthoritiesConverter = new JwtGrantedAuthoritiesConverter();
-
-        jwtGrantedAuthoritiesConverter.setAuthoritiesClaimName("authorities");
-
-        jwtGrantedAuthoritiesConverter.setAuthorityPrefix(""); //empty because it deletes SCOPE_ jwt prefix authority
-
-        JwtAuthenticationConverter jwtAuthenticationConverter = new JwtAuthenticationConverter();
-
-        jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(jwtGrantedAuthoritiesConverter);
-
-        return jwtAuthenticationConverter;
-
-    }
-
-
+    return jwtAuthenticationConverter;
+  }
 }

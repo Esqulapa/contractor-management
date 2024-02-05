@@ -14,7 +14,6 @@ import org.springframework.util.StringUtils;
 import java.util.Arrays;
 import java.util.Collection;
 
-
 @Data
 @Builder
 @AllArgsConstructor
@@ -22,60 +21,57 @@ import java.util.Collection;
 @Entity
 @Table
 public class AppUser implements UserDetails {
-    @Id
-    @SequenceGenerator(
-            name = "user_id_sequence",
-            sequenceName = "user_id_sequence",
-            allocationSize = 1
+  @Id
+  @SequenceGenerator(
+      name = "user_id_sequence",
+      sequenceName = "user_id_sequence",
+      allocationSize = 1)
+  @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "user_id_sequence")
+  @Column(name = "id")
+  private Integer id;
 
+  @Column(name = "username")
+  private String username;
 
-    )
-    @GeneratedValue(
-            strategy = GenerationType.SEQUENCE,
-            generator = "user_id_sequence"
-    )
-    private Integer id;
+  @JsonIgnore
+  @Column(name = "password")
+  private String password;
 
-    private String username;
+  @Column(name = "roles")
+  private String roles;
 
-    @JsonIgnore
-    private String password;
+  @Column(name = "enabled")
+  private Boolean enabled;
 
-    private String roles;
+  @Override
+  public Collection<? extends GrantedAuthority> getAuthorities() {
+    return Arrays.stream(StringUtils.tokenizeToStringArray(this.roles, " "))
+        .map(role -> new SimpleGrantedAuthority("ROLE_" + role))
+        .toList();
+  }
 
-    private Boolean enabled;
+  @Override
+  public String getUsername() {
+    return username;
+  }
 
+  @Override
+  public boolean isAccountNonExpired() {
+    return true;
+  }
 
-    @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        return Arrays.stream(StringUtils.tokenizeToStringArray(this.roles, " "))
-                .map(role -> new SimpleGrantedAuthority("ROLE_" + role))
-                .toList();
-    }
+  @Override
+  public boolean isAccountNonLocked() {
+    return true;
+  }
 
+  @Override
+  public boolean isCredentialsNonExpired() {
+    return true;
+  }
 
-    @Override
-    public String getUsername() {
-        return username;
-    }
-
-    @Override
-    public boolean isAccountNonExpired() {
-        return true;
-    }
-
-    @Override
-    public boolean isAccountNonLocked() {
-        return true;
-    }
-
-    @Override
-    public boolean isCredentialsNonExpired() {
-        return true;
-    }
-
-    @Override
-    public boolean isEnabled() {
-        return true;
-    }
+  @Override
+  public boolean isEnabled() {
+    return true;
+  }
 }

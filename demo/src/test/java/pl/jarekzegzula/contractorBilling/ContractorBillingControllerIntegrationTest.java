@@ -39,280 +39,316 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Tag("integration")
 public class ContractorBillingControllerIntegrationTest {
 
-    @Autowired
-    MockMvc mockMvc;
+  @Autowired MockMvc mockMvc;
 
-    @Autowired
-    ObjectMapper objectMapper;
+  @Autowired ObjectMapper objectMapper;
 
-    String token;
+  String token;
 
-    @Value("${api.endpoint.base-url}")
-    String baseUrl;
+  @Value("${api.endpoint.base-url}")
+  String baseUrl;
 
-    @BeforeEach
-    void setup() throws Exception {
+  @BeforeEach
+  void setup() throws Exception {
 
-        ResultActions resultActions = this.mockMvc
-                .perform(post(this.baseUrl + "/users/login")
-                        .with(httpBasic("user", "1234")));
-        MvcResult mvcResult = resultActions.andDo(print()).andReturn();
-        String contentAsString = mvcResult.getResponse().getContentAsString();
-        JSONObject json = new JSONObject(contentAsString);
-        this.token = "Bearer " + json.getJSONObject("data").getString("token");
+    ResultActions resultActions =
+        this.mockMvc.perform(post(this.baseUrl + "/users/login").with(httpBasic("user", "1234")));
+    MvcResult mvcResult = resultActions.andDo(print()).andReturn();
+    String contentAsString = mvcResult.getResponse().getContentAsString();
+    JSONObject json = new JSONObject(contentAsString);
+    this.token = "Bearer " + json.getJSONObject("data").getString("token");
+  }
 
-    }
+  @Test
+  @DisplayName("Check findAllContractorBillings (GET)")
+  @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
+  void testFindAllContractorBillingsSuccess() throws Exception {
+    this.mockMvc
+        .perform(
+            get(this.baseUrl + "/contractor/billing")
+                .accept(MediaType.APPLICATION_JSON)
+                .header(HttpHeaders.AUTHORIZATION, this.token))
+        .andExpect(jsonPath("$.flag").value(true))
+        .andExpect(jsonPath("$.code").value(StatusCode.SUCCESS))
+        .andExpect(jsonPath("$.message").value("Success"))
+        .andExpect(jsonPath("$.data", Matchers.hasSize(3)));
+  }
 
-    @Test
-    @DisplayName("Check findAllContractorBillings (GET)")
-    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
-    void testFindAllContractorBillingsSuccess() throws Exception {
-        this.mockMvc.perform(get(this.baseUrl + "/contractor/billing")
-                        .accept(MediaType.APPLICATION_JSON).header(HttpHeaders.AUTHORIZATION, this.token))
-                .andExpect(jsonPath("$.flag").value(true))
-                .andExpect(jsonPath("$.code").value(StatusCode.SUCCESS))
-                .andExpect(jsonPath("$.message").value("Success"))
-                .andExpect(jsonPath("$.data", Matchers.hasSize(3)));
-    }
+  @Test
+  @DisplayName("Check findContractorBillingById (GET)")
+  @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
+  void testFindContractorBillingByIdSuccess() throws Exception {
+    this.mockMvc
+        .perform(
+            get(this.baseUrl + "/contractor/billing/1")
+                .accept(MediaType.APPLICATION_JSON)
+                .header(HttpHeaders.AUTHORIZATION, this.token))
+        .andExpect(jsonPath("$.flag").value(true))
+        .andExpect(jsonPath("$.code").value(StatusCode.SUCCESS))
+        .andExpect(jsonPath("$.message").value("Success"))
+        .andExpect(jsonPath("$.data.id").value("1"))
+        .andExpect(jsonPath("$.data.workedHours").value(168.0))
+        .andExpect(jsonPath("$.data.year").value("2024"))
+        .andExpect(jsonPath("$.data.month").value("FEBRUARY"));
+  }
 
-    @Test
-    @DisplayName("Check findContractorBillingById (GET)")
-    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
-    void testFindContractorBillingByIdSuccess() throws Exception {
-        this.mockMvc.perform(get(this.baseUrl + "/contractor/billing/1")
-                        .accept(MediaType.APPLICATION_JSON).header(HttpHeaders.AUTHORIZATION, this.token))
-                .andExpect(jsonPath("$.flag").value(true))
-                .andExpect(jsonPath("$.code").value(StatusCode.SUCCESS))
-                .andExpect(jsonPath("$.message").value("Success"))
-                .andExpect(jsonPath("$.data.id").value("1"))
-                .andExpect(jsonPath("$.data.workedHours").value(168.0))
-                .andExpect(jsonPath("$.data.year").value("2024"))
-                .andExpect(jsonPath("$.data.month").value("FEBRUARY"));
-    }
+  @Test
+  @DisplayName("Check findContractorBillingById with non-existent id (GET)")
+  @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
+  void testFindContractorByIdNotFound() throws Exception {
+    this.mockMvc
+        .perform(
+            get(this.baseUrl + "/contractor/billing/10")
+                .accept(MediaType.APPLICATION_JSON)
+                .header(HttpHeaders.AUTHORIZATION, this.token))
+        .andExpect(jsonPath("$.flag").value(false))
+        .andExpect(jsonPath("$.code").value(StatusCode.NOT_FOUND))
+        .andExpect(jsonPath("$.message").value("Could not find contractor billing with Id 10"))
+        .andExpect(jsonPath("$.data").isEmpty());
+  }
 
-    @Test
-    @DisplayName("Check findContractorBillingById with non-existent id (GET)")
-    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
-    void testFindContractorByIdNotFound() throws Exception {
-        this.mockMvc.perform(get(this.baseUrl + "/contractor/billing/10")
-                        .accept(MediaType.APPLICATION_JSON).header(HttpHeaders.AUTHORIZATION, this.token))
-                .andExpect(jsonPath("$.flag").value(false))
-                .andExpect(jsonPath("$.code").value(StatusCode.NOT_FOUND))
-                .andExpect(jsonPath("$.message").value("Could not find contractor billing with Id 10"))
-                .andExpect(jsonPath("$.data").isEmpty());
-    }
+  @Test
+  @DisplayName("Check addContractorBilling with valid input (POST)")
+  @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
+  void testAddContractorBillingSuccess() throws Exception {
+    NewContractorBillingRequest newContractorBillingRequest1 =
+        new NewContractorBillingRequest(1, 160.0, Year.of(2023), Month.FEBRUARY);
 
-    @Test
-    @DisplayName("Check addContractorBilling with valid input (POST)")
-    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
-    void testAddContractorBillingSuccess() throws Exception {
-        NewContractorBillingRequest newContractorBillingRequest1 = new NewContractorBillingRequest(
-                1,
-                160.0,
-                Year.of(2023),
-                Month.FEBRUARY);
+    String jsonRequest = objectMapper.writeValueAsString(newContractorBillingRequest1);
 
-        String jsonRequest = objectMapper.writeValueAsString(newContractorBillingRequest1);
+    this.mockMvc
+        .perform(
+            post(this.baseUrl + "/contractor/billing")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(jsonRequest)
+                .accept(MediaType.APPLICATION_JSON)
+                .header(HttpHeaders.AUTHORIZATION, this.token))
+        .andExpect(jsonPath("$.flag").value(true))
+        .andExpect(jsonPath("$.code").value(StatusCode.SUCCESS))
+        .andExpect(jsonPath("$.message").value("Contractor billing added successfully"))
+        .andExpect(jsonPath("$.data.id").value("1"))
+        .andExpect(jsonPath("$.data.workedHours").value("160.0"));
+    this.mockMvc
+        .perform(
+            get(this.baseUrl + "/contractor/billing")
+                .accept(MediaType.APPLICATION_JSON)
+                .header(HttpHeaders.AUTHORIZATION, this.token))
+        .andExpect(jsonPath("$.flag").value(true))
+        .andExpect(jsonPath("$.code").value(StatusCode.SUCCESS))
+        .andExpect(jsonPath("$.message").value("Success"))
+        .andExpect(jsonPath("$.data", Matchers.hasSize(4)));
+  }
 
-        this.mockMvc.perform(post(this.baseUrl + "/contractor/billing")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(jsonRequest).accept(MediaType.APPLICATION_JSON)
-                        .header(HttpHeaders.AUTHORIZATION, this.token))
-                .andExpect(jsonPath("$.flag").value(true))
-                .andExpect(jsonPath("$.code").value(StatusCode.SUCCESS))
-                .andExpect(jsonPath("$.message").value("Contractor billing added successfully"))
-                .andExpect(jsonPath("$.data.id").value("1"))
-                .andExpect(jsonPath("$.data.workedHours").value("160.0"));
-        this.mockMvc.perform(get(this.baseUrl + "/contractor/billing")
-                        .accept(MediaType.APPLICATION_JSON).header(HttpHeaders.AUTHORIZATION, this.token))
-                .andExpect(jsonPath("$.flag").value(true))
-                .andExpect(jsonPath("$.code").value(StatusCode.SUCCESS))
-                .andExpect(jsonPath("$.message").value("Success"))
-                .andExpect(jsonPath("$.data", Matchers.hasSize(4)));
+  @Test
+  @DisplayName("Check addContractorBilling with invalid input (POST)")
+  @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
+  void testAddContractorBillingErrorWithInvalidInput() throws Exception {
+    NewContractorBillingRequest newContractorBillingRequest1 =
+        new NewContractorBillingRequest(null, null, null, null);
 
-    }
+    String jsonRequest = objectMapper.writeValueAsString(newContractorBillingRequest1);
 
-    @Test
-    @DisplayName("Check addContractorBilling with invalid input (POST)")
-    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
-    void testAddContractorBillingErrorWithInvalidInput() throws Exception {
-        NewContractorBillingRequest newContractorBillingRequest1 = new NewContractorBillingRequest(
-                null,
-                null,
-                null,
-                null);
+    this.mockMvc
+        .perform(
+            post(this.baseUrl + "/contractor/billing")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(jsonRequest)
+                .accept(MediaType.APPLICATION_JSON)
+                .header(HttpHeaders.AUTHORIZATION, this.token))
+        .andExpect(jsonPath("$.flag").value(false))
+        .andExpect(jsonPath("$.code").value(StatusCode.INVALID_ARGUMENT))
+        .andExpect(
+            jsonPath("$.message").value("Provided arguments are invalid, see data for details."))
+        .andExpect(jsonPath("$.data.id").value("must not be null"))
+        .andExpect(jsonPath("$.data.workedHours").value("must not be null"))
+        .andExpect(jsonPath("$.data.year").value("must not be null"))
+        .andExpect(jsonPath("$.data.month").value("must not be null"));
+    this.mockMvc
+        .perform(
+            get(this.baseUrl + "/contractor/billing")
+                .accept(MediaType.APPLICATION_JSON)
+                .header(HttpHeaders.AUTHORIZATION, this.token))
+        .andExpect(jsonPath("$.flag").value(true))
+        .andExpect(jsonPath("$.code").value(StatusCode.SUCCESS))
+        .andExpect(jsonPath("$.message").value("Success"))
+        .andExpect(jsonPath("$.data", Matchers.hasSize(3)));
+  }
 
-        String jsonRequest = objectMapper.writeValueAsString(newContractorBillingRequest1);
+  @Test
+  @DisplayName("Check updateContractorBillingWorkingHours with valid input (PUT)")
+  @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
+  void testUpdateContractorBillingWorkedHoursSuccess() throws Exception {
 
-        this.mockMvc.perform(post(this.baseUrl + "/contractor/billing")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(jsonRequest).accept(MediaType.APPLICATION_JSON)
-                        .header(HttpHeaders.AUTHORIZATION, this.token))
-                .andExpect(jsonPath("$.flag").value(false))
-                .andExpect(jsonPath("$.code").value(StatusCode.INVALID_ARGUMENT))
-                .andExpect(jsonPath("$.message").value("Provided arguments are invalid, see data for details."))
-                .andExpect(jsonPath("$.data.id").value("must not be null"))
-                .andExpect(jsonPath("$.data.workedHours").value("must not be null"))
-                .andExpect(jsonPath("$.data.year").value("must not be null"))
-                .andExpect(jsonPath("$.data.month").value("must not be null"));
-        this.mockMvc.perform(get(this.baseUrl + "/contractor/billing").accept(MediaType.APPLICATION_JSON).header(HttpHeaders.AUTHORIZATION, this.token))
-                .andExpect(jsonPath("$.flag").value(true))
-                .andExpect(jsonPath("$.code").value(StatusCode.SUCCESS))
-                .andExpect(jsonPath("$.message").value("Success"))
-                .andExpect(jsonPath("$.data", Matchers.hasSize(3)));
+    UpdateContractorBillingHoursRequest updateContractorBillingHoursRequest =
+        new UpdateContractorBillingHoursRequest(144.0);
 
-    }
+    String json = objectMapper.writeValueAsString(updateContractorBillingHoursRequest);
 
-    @Test
-    @DisplayName("Check updateContractorBillingWorkingHours with valid input (PUT)")
-    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
-    void testUpdateContractorBillingWorkedHoursSuccess() throws Exception {
+    this.mockMvc
+        .perform(
+            put(this.baseUrl + "/contractor/billing/hours/1")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json)
+                .accept(MediaType.APPLICATION_JSON)
+                .header(HttpHeaders.AUTHORIZATION, this.token))
+        .andExpect(jsonPath("$.flag").value(true))
+        .andExpect(jsonPath("$.code").value(StatusCode.SUCCESS))
+        .andExpect(jsonPath("$.message").value("Update success"));
 
-        UpdateContractorBillingHoursRequest updateContractorBillingHoursRequest = new UpdateContractorBillingHoursRequest(144.0);
+    this.mockMvc
+        .perform(
+            get(this.baseUrl + "/contractor/billing/1")
+                .accept(MediaType.APPLICATION_JSON)
+                .header(HttpHeaders.AUTHORIZATION, this.token))
+        .andExpect(jsonPath("$.flag").value(true))
+        .andExpect(jsonPath("$.code").value(StatusCode.SUCCESS))
+        .andExpect(jsonPath("$.message").value("Success"))
+        .andExpect(jsonPath("$.data.workedHours").value(144.0));
+  }
 
-        String json = objectMapper.writeValueAsString(updateContractorBillingHoursRequest);
+  @Test
+  @DisplayName("Check updateContractorBillingWorkedHours with non-existent id (PUT)")
+  @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
+  void testUpdateContractorBillingWorkedHoursErrorWithNonExistentId() throws Exception {
 
+    UpdateContractorBillingHoursRequest updateContractorBillingHoursRequest =
+        new UpdateContractorBillingHoursRequest(144.0);
 
-        this.mockMvc.perform(put(this.baseUrl + "/contractor/billing/hours/1")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(json).accept(MediaType.APPLICATION_JSON)
-                        .header(HttpHeaders.AUTHORIZATION, this.token))
-                .andExpect(jsonPath("$.flag").value(true))
-                .andExpect(jsonPath("$.code").value(StatusCode.SUCCESS))
-                .andExpect(jsonPath("$.message").value("Update success"));
+    String json = objectMapper.writeValueAsString(updateContractorBillingHoursRequest);
 
-        this.mockMvc.perform(get(this.baseUrl + "/contractor/billing/1")
-                        .accept(MediaType.APPLICATION_JSON).header(HttpHeaders.AUTHORIZATION, this.token))
-                .andExpect(jsonPath("$.flag").value(true))
-                .andExpect(jsonPath("$.code").value(StatusCode.SUCCESS))
-                .andExpect(jsonPath("$.message").value("Success"))
-                .andExpect(jsonPath("$.data.workedHours").value(144.0));
+    this.mockMvc
+        .perform(
+            put(this.baseUrl + "/contractor/billing/hours/10")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json)
+                .accept(MediaType.APPLICATION_JSON)
+                .header(HttpHeaders.AUTHORIZATION, this.token))
+        .andExpect(jsonPath("$.flag").value(false))
+        .andExpect(jsonPath("$.code").value(StatusCode.NOT_FOUND))
+        .andExpect(jsonPath("$.message").value("Could not find contractor billing with Id 10"));
+  }
 
-    }
+  @Test
+  @DisplayName("Check updateContractorBillingWorkedHours with invalid input (PUT)")
+  @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
+  void testUpdateContractorBillingWorkedHoursErrorWithInvalidInput() throws Exception {
 
-    @Test
-    @DisplayName("Check updateContractorBillingWorkedHours with non-existent id (PUT)")
-    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
-    void testUpdateContractorBillingWorkedHoursErrorWithNonExistentId() throws Exception {
+    UpdateContractorBillingHoursRequest updateContractorBillingHoursRequest =
+        new UpdateContractorBillingHoursRequest(null);
 
-        UpdateContractorBillingHoursRequest updateContractorBillingHoursRequest = new UpdateContractorBillingHoursRequest(144.0);
+    String json = objectMapper.writeValueAsString(updateContractorBillingHoursRequest);
 
-        String json = objectMapper.writeValueAsString(updateContractorBillingHoursRequest);
+    this.mockMvc
+        .perform(
+            put(this.baseUrl + "/contractor/billing/hours/1")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json)
+                .accept(MediaType.APPLICATION_JSON)
+                .header(HttpHeaders.AUTHORIZATION, this.token))
+        .andExpect(jsonPath("$.flag").value(false))
+        .andExpect(jsonPath("$.code").value(StatusCode.INVALID_ARGUMENT))
+        .andExpect(
+            jsonPath("$.message").value("Provided arguments are invalid, see data for details."))
+        .andExpect(jsonPath("$.data.workedHours").value("must not be null"));
+  }
 
+  @Test
+  @DisplayName("Check updateContractorBillingWorkedHours with the same salary value (PUT)")
+  @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
+  void testUpdateContractorBillingWorkedHoursErrorWithTheSameValue() throws Exception {
+    UpdateContractorBillingHoursRequest updateContractorBillingHoursRequest =
+        new UpdateContractorBillingHoursRequest(168.0);
 
-        this.mockMvc.perform(put(this.baseUrl + "/contractor/billing/hours/10")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(json).accept(MediaType.APPLICATION_JSON)
-                        .header(HttpHeaders.AUTHORIZATION, this.token))
-                .andExpect(jsonPath("$.flag").value(false))
-                .andExpect(jsonPath("$.code").value(StatusCode.NOT_FOUND))
-                .andExpect(jsonPath("$.message").value("Could not find contractor billing with Id 10"));
+    String json = objectMapper.writeValueAsString(updateContractorBillingHoursRequest);
 
+    this.mockMvc
+        .perform(
+            put(this.baseUrl + "/contractor/billing/hours/1")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json)
+                .accept(MediaType.APPLICATION_JSON)
+                .header(HttpHeaders.AUTHORIZATION, this.token))
+        .andExpect(jsonPath("$.flag").value(false))
+        .andExpect(jsonPath("$.code").value(StatusCode.INVALID_ARGUMENT))
+        .andExpect(
+            jsonPath("$.message")
+                .value("The given data to be changed is the same or less than zero"));
+  }
 
-    }
+  @Test
+  @DisplayName("Check deleteContractorBilling with valid input (DELETE)")
+  @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
+  void testDeleteContractorBillingSuccess() throws Exception {
+    this.mockMvc
+        .perform(
+            delete(this.baseUrl + "/contractor/billing/1")
+                .accept(MediaType.APPLICATION_JSON)
+                .header(HttpHeaders.AUTHORIZATION, this.token))
+        .andExpect(jsonPath("$.flag").value(true))
+        .andExpect(jsonPath("$.code").value(StatusCode.SUCCESS))
+        .andExpect(jsonPath("$.message").value("Delete success"));
+    this.mockMvc
+        .perform(
+            get(this.baseUrl + "/contractor/billing/1")
+                .accept(MediaType.APPLICATION_JSON)
+                .header(HttpHeaders.AUTHORIZATION, this.token))
+        .andExpect(jsonPath("$.flag").value(false))
+        .andExpect(jsonPath("$.code").value(StatusCode.NOT_FOUND))
+        .andExpect(jsonPath("$.message").value("Could not find contractor billing with Id 1"))
+        .andExpect(jsonPath("$.data").isEmpty());
+  }
 
-    @Test
-    @DisplayName("Check updateContractorBillingWorkedHours with invalid input (PUT)")
-    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
-    void testUpdateContractorBillingWorkedHoursErrorWithInvalidInput() throws Exception {
+  @Test
+  @DisplayName("Check deleteArtifact with non-existent id (DELETE)")
+  @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
+  void testDeleteContractorBillingErrorWithNonExistentId() throws Exception {
+    this.mockMvc
+        .perform(
+            delete(this.baseUrl + "/contractor/billing/100")
+                .accept(MediaType.APPLICATION_JSON)
+                .header(HttpHeaders.AUTHORIZATION, this.token))
+        .andExpect(jsonPath("$.flag").value(false))
+        .andExpect(jsonPath("$.code").value(StatusCode.NOT_FOUND))
+        .andExpect(jsonPath("$.message").value("Could not find Contractor Billing with Id 100"))
+        .andExpect(jsonPath("$.data").isEmpty());
+  }
 
-        UpdateContractorBillingHoursRequest updateContractorBillingHoursRequest = new UpdateContractorBillingHoursRequest(null);
+  @Test
+  @DisplayName("Check getContractorsWorkedHoursInGivenYearMonth with valid input (GET)")
+  @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
+  void testGetContractorsWorkedHoursInGivenYearMonthSuccess() throws Exception {
+    this.mockMvc
+        .perform(
+            get(this.baseUrl + "/contractor/billing/report")
+                .param("year", "2024")
+                .param("month", "FEBRUARY")
+                .accept(MediaType.APPLICATION_JSON)
+                .header(HttpHeaders.AUTHORIZATION, this.token))
+        .andExpect(jsonPath("$.flag").value(true))
+        .andExpect(jsonPath("$.code").value(StatusCode.SUCCESS))
+        .andExpect(jsonPath("$.message").value("Success"))
+        .andExpect(jsonPath("$.data").exists())
+        .andExpect(jsonPath("$.data.yearMonth").value("2024-02"))
+        .andExpect(jsonPath("$.data.workingHours").value(168.0))
+        .andExpect(jsonPath("$.data.contractorBillingDTOS", Matchers.hasSize(3)));
+  }
 
-        String json = objectMapper.writeValueAsString(updateContractorBillingHoursRequest);
-
-
-        this.mockMvc.perform(put(this.baseUrl + "/contractor/billing/hours/1")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(json).accept(MediaType.APPLICATION_JSON)
-                        .header(HttpHeaders.AUTHORIZATION, this.token))
-                .andExpect(jsonPath("$.flag").value(false))
-                .andExpect(jsonPath("$.code").value(StatusCode.INVALID_ARGUMENT))
-                .andExpect(jsonPath("$.message").value("Provided arguments are invalid, see data for details."))
-                .andExpect(jsonPath("$.data.workedHours").value("must not be null"));
-
-
-    }
-
-    @Test
-    @DisplayName("Check updateContractorBillingWorkedHours with the same salary value (PUT)")
-    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
-    void testUpdateContractorBillingWorkedHoursErrorWithTheSameValue() throws Exception {
-        UpdateContractorBillingHoursRequest updateContractorBillingHoursRequest = new UpdateContractorBillingHoursRequest(168.0);
-
-        String json = objectMapper.writeValueAsString(updateContractorBillingHoursRequest);
-
-        this.mockMvc.perform(put(this.baseUrl + "/contractor/billing/hours/1")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(json).accept(MediaType.APPLICATION_JSON)
-                        .header(HttpHeaders.AUTHORIZATION, this.token))
-                .andExpect(jsonPath("$.flag").value(false))
-                .andExpect(jsonPath("$.code").value(StatusCode.INVALID_ARGUMENT))
-                .andExpect(jsonPath("$.message").value("The given data to be changed is the same or less than zero"));
-
-
-    }
-
-    @Test
-    @DisplayName("Check deleteContractorBilling with valid input (DELETE)")
-    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
-    void testDeleteContractorBillingSuccess() throws Exception {
-        this.mockMvc.perform(delete(this.baseUrl + "/contractor/billing/1").accept(MediaType.APPLICATION_JSON).header(HttpHeaders.AUTHORIZATION, this.token))
-                .andExpect(jsonPath("$.flag").value(true))
-                .andExpect(jsonPath("$.code").value(StatusCode.SUCCESS))
-                .andExpect(jsonPath("$.message").value("Delete success"));
-        this.mockMvc.perform(get(this.baseUrl + "/contractor/billing/1").accept(MediaType.APPLICATION_JSON).header(HttpHeaders.AUTHORIZATION, this.token))
-                .andExpect(jsonPath("$.flag").value(false))
-                .andExpect(jsonPath("$.code").value(StatusCode.NOT_FOUND))
-                .andExpect(jsonPath("$.message").value("Could not find contractor billing with Id 1"))
-                .andExpect(jsonPath("$.data").isEmpty());
-    }
-
-    @Test
-    @DisplayName("Check deleteArtifact with non-existent id (DELETE)")
-    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
-    void testDeleteContractorBillingErrorWithNonExistentId() throws Exception {
-        this.mockMvc.perform(delete(this.baseUrl + "/contractor/billing/100").accept(MediaType.APPLICATION_JSON).header(HttpHeaders.AUTHORIZATION, this.token))
-                .andExpect(jsonPath("$.flag").value(false))
-                .andExpect(jsonPath("$.code").value(StatusCode.NOT_FOUND))
-                .andExpect(jsonPath("$.message").value("Could not find Contractor Billing with Id 100"))
-                .andExpect(jsonPath("$.data").isEmpty());
-    }
-
-    @Test
-    @DisplayName("Check getContractorsWorkedHoursInGivenYearMonth with valid input (GET)")
-    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
-    void testGetContractorsWorkedHoursInGivenYearMonthSuccess() throws Exception {
-        this.mockMvc.perform(get(this.baseUrl + "/contractor/billing/report")
-                        .param("year", "2024")
-                        .param("month", "FEBRUARY")
-                        .accept(MediaType.APPLICATION_JSON)
-                        .header(HttpHeaders.AUTHORIZATION, this.token))
-                .andExpect(jsonPath("$.flag").value(true))
-                .andExpect(jsonPath("$.code").value(StatusCode.SUCCESS))
-                .andExpect(jsonPath("$.message").value("Success"))
-                .andExpect(jsonPath("$.data").exists())
-                .andExpect(jsonPath("$.data.yearMonth").value("2024-02"))
-                .andExpect(jsonPath("$.data.workingHours").value( 168.0))
-                .andExpect(jsonPath("$.data.contractorBillingDTOS", Matchers.hasSize(3)));
-
-
-    }
-
-    @Test
-    @DisplayName("Check getContractorsWorkedHoursInGivenYearMonth with non existent billings (GET)")
-    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
-    void testGetContractorsWorkedHoursInGivenYearMonthWithNonExistentBillings() throws Exception {
-        this.mockMvc.perform(get(this.baseUrl + "/contractor/billing/report")
-                        .param("year", "2024")
-                        .param("month", "DECEMBER")
-                        .accept(MediaType.APPLICATION_JSON)
-                        .header(HttpHeaders.AUTHORIZATION, this.token))
-                .andExpect(jsonPath("$.flag").value(false))
-                .andExpect(jsonPath("$.code").value(StatusCode.NOT_FOUND))
-                .andExpect(jsonPath("$.message").value("Could not find contractor billings with given 2024 and DECEMBER"))
-                .andExpect(jsonPath("$.data").isEmpty());
-
-
-    }
-
+  @Test
+  @DisplayName("Check getContractorsWorkedHoursInGivenYearMonth with non existent billings (GET)")
+  @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
+  void testGetContractorsWorkedHoursInGivenYearMonthWithNonExistentBillings() throws Exception {
+    this.mockMvc
+        .perform(
+            get(this.baseUrl + "/contractor/billing/report")
+                .param("year", "2024")
+                .param("month", "DECEMBER")
+                .accept(MediaType.APPLICATION_JSON)
+                .header(HttpHeaders.AUTHORIZATION, this.token))
+        .andExpect(jsonPath("$.flag").value(false))
+        .andExpect(jsonPath("$.code").value(StatusCode.NOT_FOUND))
+        .andExpect(
+            jsonPath("$.message")
+                .value("Could not find contractor billings with given 2024 and DECEMBER"))
+        .andExpect(jsonPath("$.data").isEmpty());
+  }
 }

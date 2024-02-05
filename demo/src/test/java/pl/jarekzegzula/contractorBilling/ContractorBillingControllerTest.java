@@ -35,228 +35,240 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc(addFilters = false)
 class ContractorBillingControllerTest {
 
-    @Autowired
-    MockMvc mockMvc;
+  @Autowired MockMvc mockMvc;
 
-    @Autowired
-    ObjectMapper objectMapper;
+  @Autowired ObjectMapper objectMapper;
 
-    @MockBean
-    ContractorBillingService contractorBillingService;
+  @MockBean ContractorBillingService contractorBillingService;
 
-    @Value("${api.endpoint.base-url}")
-    String baseUrl;
+  @Value("${api.endpoint.base-url}")
+  String baseUrl;
 
-    List<ContractorBilling> contractorBillings;
+  List<ContractorBilling> contractorBillings;
 
+  @BeforeEach
+  void setUp() {
 
+    ArrayList<Contractor> contractors = new ArrayList<>();
 
-    @BeforeEach
-    void setUp() {
+    Contractor contractor1 = new Contractor();
+    contractor1.setId(1);
+    contractor1.setFirstName("Marian");
+    contractor1.setLastName("Paździoch");
+    contractor1.setContractType(ContractType.CONTRACT_B2B);
+    contractor1.setMonthlyEarnings(59.53 * 168);
+    contractor1.setHourlyRate(59.53);
+    contractor1.setMonthlyHourLimit(168);
+    contractor1.setIsOvertimePaid(true);
+    contractor1.setOvertimeMultiplier(1.5);
+    contractor1.setContractorHourPrice(80.0);
+    contractors.add(contractor1);
 
-        ArrayList<Contractor> contractors = new ArrayList<>();
+    Contractor contractor2 = new Contractor();
+    contractor2.setId(2);
+    contractor2.setFirstName("Ryszard");
+    contractor2.setLastName("Peja");
+    contractor2.setContractType(ContractType.CONTRACT_B2B);
+    contractor2.setMonthlyEarnings(59.53 * 168);
+    contractor2.setHourlyRate(59.53);
+    contractor2.setMonthlyHourLimit(168);
+    contractor2.setIsOvertimePaid(true);
+    contractor2.setOvertimeMultiplier(1.5);
+    contractor2.setContractorHourPrice(80.0);
+    contractors.add(contractor2);
 
-        Contractor contractor1 = new Contractor();
-        contractor1.setId(1);
-        contractor1.setFirstName("Marian");
-        contractor1.setLastName("Paździoch");
-        contractor1.setContractType(ContractType.CONTRACT_B2B);
-        contractor1.setMonthlyEarnings(59.53*168);
-        contractor1.setHourlyRate(59.53);
-        contractor1.setMonthlyHourLimit(168);
-        contractor1.setIsOvertimePaid(true);
-        contractor1.setOvertimeMultiplier(1.5);
-        contractor1.setContractorHourPrice(80.0);
-        contractors.add(contractor1);
+    NewContractorBillingRequest newContractorBillingRequest =
+        new NewContractorBillingRequest(1, 169.0, Year.of(2023), Month.MARCH);
+    ContractorBilling contractorBilling1 =
+        new ContractorBilling(newContractorBillingRequest, contractor1);
+    contractorBilling1.setId(1);
 
-        Contractor contractor2 = new Contractor();
-        contractor2.setId(2);
-        contractor2.setFirstName("Ryszard");
-        contractor2.setLastName("Peja");
-        contractor2.setContractType(ContractType.CONTRACT_B2B);
-        contractor2.setMonthlyEarnings(59.53*168);
-        contractor2.setHourlyRate(59.53);
-        contractor2.setMonthlyHourLimit(168);
-        contractor2.setIsOvertimePaid(true);
-        contractor2.setOvertimeMultiplier(1.5);
-        contractor2.setContractorHourPrice(80.0);
-        contractors.add(contractor2);
+    ContractorBilling contractorBilling2 = new ContractorBilling();
+    contractorBilling2.setId(2);
+    contractorBilling2.setContractor(contractors.get(1));
+    contractorBilling2.setWorkedHours(152.0);
+    contractorBilling2.setYear(Year.of(2023));
+    contractorBilling2.setMonth(Month.MAY);
 
-        NewContractorBillingRequest newContractorBillingRequest = new NewContractorBillingRequest(1, 169.0, Year.of(2023), Month.MARCH);
-        ContractorBilling contractorBilling1 = new ContractorBilling(newContractorBillingRequest,contractor1);
-        contractorBilling1.setId(1);
+    contractorBillings = new ArrayList<>();
+    contractorBillings.add(contractorBilling1);
+    contractorBillings.add(contractorBilling2);
+  }
 
+  @AfterEach
+  void tearDown() {}
 
-        ContractorBilling contractorBilling2 = new ContractorBilling();
-        contractorBilling2.setId(2);
-        contractorBilling2.setContractor(contractors.get(1));
-        contractorBilling2.setWorkedHours(152.0);
-        contractorBilling2.setYear(Year.of(2023));
-        contractorBilling2.setMonth(Month.MAY);
+  @Test
+  void getContractorBillings() throws Exception {
 
-        contractorBillings = new ArrayList<>();
-        contractorBillings.add(contractorBilling1);
-        contractorBillings.add(contractorBilling2);
+    given(this.contractorBillingService.findAll()).willReturn(this.contractorBillings);
 
+    this.mockMvc
+        .perform(get(this.baseUrl + "/contractor/billing").accept(MediaType.APPLICATION_JSON))
+        .andExpect(jsonPath("$.flag").value(true))
+        .andExpect(jsonPath("$.code").value(200))
+        .andExpect(jsonPath("$.message").value("Success"))
+        .andExpect(jsonPath("$.data", Matchers.hasSize(this.contractorBillings.size())))
+        .andExpect(jsonPath("$.data.[0].id").value(1))
+        .andExpect(jsonPath("$.data.[0].year").value(2023))
+        .andExpect(jsonPath("$.data.[0].month").value("MARCH"));
+  }
 
+  @Test
+  void getContractorBillingById() throws Exception {
+    // given
 
+    given(this.contractorBillingService.getContractorBillingById(1))
+        .willReturn(this.contractorBillings.get(0));
 
-    }
+    // When and then
 
-    @AfterEach
-    void tearDown() {
-    }
+    this.mockMvc
+        .perform(get(this.baseUrl + "/contractor/billing/1").accept(MediaType.APPLICATION_JSON))
+        .andExpect(jsonPath("$.flag").value(true))
+        .andExpect(jsonPath("$.code").value(200))
+        .andExpect(jsonPath("$.message").value("Success"))
+        .andExpect(jsonPath("$.data.id").value(1))
+        .andExpect(jsonPath("$.data.year").value(2023))
+        .andExpect(jsonPath("$.data.month").value("MARCH"));
+  }
 
-    @Test
-    void getContractorBillings() throws Exception {
+  @Test
+  void getContractorBillingByIdNotFound() throws Exception {
+    // given
 
-        given(this.contractorBillingService.findAll()).willReturn(this.contractorBillings);
+    given(this.contractorBillingService.getContractorBillingById(1))
+        .willThrow(new ObjectNotFoundException("contractor billing", 1));
 
-        this.mockMvc.perform(get(this.baseUrl + "/contractor/billing").accept(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.flag").value(true))
-                .andExpect(jsonPath("$.code").value(200))
-                .andExpect(jsonPath("$.message").value("Success"))
-                .andExpect(jsonPath("$.data", Matchers.hasSize(this.contractorBillings.size())))
-                .andExpect(jsonPath("$.data.[0].id").value(1))
-                .andExpect(jsonPath("$.data.[0].year").value(2023))
-                .andExpect(jsonPath("$.data.[0].month").value("MARCH"));
-    }
+    // When and then
 
-    @Test
-    void getContractorBillingById() throws Exception {
-        //given
+    this.mockMvc
+        .perform(get(this.baseUrl + "/contractor/billing/1").accept(MediaType.APPLICATION_JSON))
+        .andExpect(jsonPath("$.flag").value(false))
+        .andExpect(jsonPath("$.code").value(StatusCode.NOT_FOUND))
+        .andExpect(jsonPath("$.message").value("Could not find contractor billing with Id 1"))
+        .andExpect(jsonPath("$.data").isEmpty());
+  }
 
-        given(this.contractorBillingService.getContractorBillingById(1)).willReturn(this.contractorBillings.get(0));
+  @Test
+  void updateContractorWorkedHours() throws Exception {
 
-        //When and then
+    UpdateContractorBillingHoursRequest updateContractorBillingHoursRequest =
+        new UpdateContractorBillingHoursRequest(140.0);
 
-        this.mockMvc.perform(get(this.baseUrl + "/contractor/billing/1").accept(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.flag").value(true))
-                .andExpect(jsonPath("$.code").value(200))
-                .andExpect(jsonPath("$.message").value("Success"))
-                .andExpect(jsonPath("$.data.id").value(1))
-                .andExpect(jsonPath("$.data.year").value(2023))
-                .andExpect(jsonPath("$.data.month").value("MARCH"));
-    }
-    @Test
-    void getContractorBillingByIdNotFound() throws Exception {
-        //given
+    Integer contractorBillingId = 1;
 
-        given(this.contractorBillingService.getContractorBillingById(1)).willThrow(new ObjectNotFoundException("contractor billing", 1));
+    String json = objectMapper.writeValueAsString(updateContractorBillingHoursRequest);
 
-        //When and then
+    doNothing()
+        .when(contractorBillingService)
+        .updateContractorBillingWorkedHours(
+            updateContractorBillingHoursRequest, contractorBillingId);
 
-        this.mockMvc.perform(get(this.baseUrl + "/contractor/billing/1").accept(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.flag").value(false))
-                .andExpect(jsonPath("$.code").value(StatusCode.NOT_FOUND))
-                .andExpect(jsonPath("$.message").value("Could not find contractor billing with Id 1"))
-                .andExpect(jsonPath("$.data").isEmpty());
-    }
+    mockMvc
+        .perform(
+            put(
+                    this.baseUrl + "/contractor/billing/hours/{contractorBillingId}",
+                    contractorBillingId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json))
+        .andExpect(jsonPath("$.flag").value(true))
+        .andExpect(jsonPath("$.code").value(200))
+        .andExpect(jsonPath("$.message").value("Update success"));
+  }
 
-    @Test
-    void updateContractorWorkedHours() throws Exception {
+  @Test
+  void addContractorBilling() throws Exception {
+    NewContractorBillingRequest newContractorBillingRequest =
+        new NewContractorBillingRequest(1, 150., Year.of(2023), Month.MARCH);
 
-        UpdateContractorBillingHoursRequest updateContractorBillingHoursRequest = new UpdateContractorBillingHoursRequest(140.0);
+    String json = objectMapper.writeValueAsString(newContractorBillingRequest);
 
-        Integer contractorBillingId = 1;
+    mockMvc
+        .perform(
+            post(this.baseUrl + "/contractor/billing")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json))
+        .andExpect(jsonPath("$.flag").value(true))
+        .andExpect(jsonPath("$.code").value(StatusCode.SUCCESS))
+        .andExpect(jsonPath("$.message").value("Contractor billing added successfully"))
+        .andExpect(jsonPath("$.data").exists());
+  }
 
-        String json = objectMapper.writeValueAsString(updateContractorBillingHoursRequest);
+  @Test
+  void deleteContractorBilling() throws Exception {
 
-        doNothing().when(contractorBillingService).updateContractorBillingWorkedHours(updateContractorBillingHoursRequest,contractorBillingId);
+    mockMvc
+        .perform(delete(this.baseUrl + "/contractor/billing/1").accept(MediaType.APPLICATION_JSON))
+        .andExpect(jsonPath("$.flag").value(true))
+        .andExpect(jsonPath("$.code").value(StatusCode.SUCCESS))
+        .andExpect(jsonPath("$.message").value("Delete success"));
+  }
 
-        mockMvc.perform(put(this.baseUrl + "/contractor/billing/hours/{contractorBillingId}", contractorBillingId)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(json))
-                .andExpect(jsonPath("$.flag").value(true))
-                .andExpect(jsonPath("$.code").value(200))
-                .andExpect(jsonPath("$.message").value("Update success"));
+  @Test
+  void deleteContractorBillingNotFound() throws Exception {
+    Integer contractorBillingId = 10;
 
+    doThrow(new ObjectNotFoundException("contractor billing", contractorBillingId))
+        .when(this.contractorBillingService)
+        .deleteContractorBillingById(10);
 
-    }
+    mockMvc
+        .perform(delete(this.baseUrl + "/contractor/billing/10").accept(MediaType.APPLICATION_JSON))
+        .andExpect(jsonPath("$.flag").value(false))
+        .andExpect(jsonPath("$.code").value(StatusCode.NOT_FOUND))
+        .andExpect(
+            jsonPath("$.message")
+                .value("Could not find contractor billing with Id " + contractorBillingId));
+  }
 
-    @Test
-    void addContractorBilling() throws Exception {
-        NewContractorBillingRequest newContractorBillingRequest = new NewContractorBillingRequest(1,150.,Year.of(2023),Month.MARCH);
+  @Test
+  void getContractorBillingsMonthlyReport() throws Exception {
+    Year year = Year.of(2023);
+    Month month = Month.MARCH;
 
-        String json = objectMapper.writeValueAsString(newContractorBillingRequest);
+    List<ContractorBilling> contractorByYearAndMonth = new ArrayList<>();
+    contractorByYearAndMonth.add(this.contractorBillings.get(0));
+    List<ContractorBillingDTO> contractorByYearAndMonthDto =
+        contractorByYearAndMonth.stream().map(ContractorBillingDTO::new).toList();
 
-        mockMvc.perform(post(this.baseUrl + "/contractor/billing")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(json))
-                .andExpect(jsonPath("$.flag").value(true))
-                .andExpect(jsonPath("$.code").value(StatusCode.SUCCESS))
-                .andExpect(jsonPath("$.message").value("Contractor billing added successfully"))
-                .andExpect(jsonPath("$.data").exists());
-    }
+    ContractorBillingReportByMonth contractorBillingReportByMonth =
+        new ContractorBillingReportByMonth(contractorByYearAndMonthDto, year, month);
 
-    @Test
-    void deleteContractorBilling() throws Exception {
+    given(contractorBillingService.getContractorBillingsMonthlyReport(Year.of(2023), Month.MARCH))
+        .willReturn(contractorBillingReportByMonth);
 
-        mockMvc.perform(delete(this.baseUrl + "/contractor/billing/1")
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.flag").value(true))
-                .andExpect(jsonPath("$.code").value(StatusCode.SUCCESS))
-                .andExpect(jsonPath("$.message").value("Delete success"));
-    }
+    mockMvc
+        .perform(
+            get(this.baseUrl + "/contractor/billing/report")
+                .param("year", String.valueOf(year.getValue()))
+                .param("month", month.name()))
+        .andExpect(jsonPath("$.flag").value(true))
+        .andExpect(jsonPath("$.code").value(StatusCode.SUCCESS))
+        .andExpect(jsonPath("$.message").value("Success"))
+        .andExpect(jsonPath("$.data").exists());
+  }
 
-    @Test
-    void deleteContractorBillingNotFound() throws Exception {
-        Integer contractorBillingId = 10;
+  @Test
+  void getContractorBillingsMonthlyReportNotFound() throws Exception {
 
-        doThrow(new ObjectNotFoundException("contractor billing", contractorBillingId))
-                .when(this.contractorBillingService).deleteContractorBillingById(10);
+    Year year = Year.of(2023);
+    Month month = Month.MARCH;
 
-        mockMvc.perform(delete(this.baseUrl + "/contractor/billing/10")
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.flag").value(false))
-                .andExpect(jsonPath("$.code").value(StatusCode.NOT_FOUND))
-                .andExpect(jsonPath("$.message").value("Could not find contractor billing with Id " + contractorBillingId));
-    }
+    given(contractorBillingService.getContractorBillingsMonthlyReport(Year.of(2023), Month.MARCH))
+        .willThrow(
+            new ObjectNotFoundException("contractor billings", year.toString(), month.name()));
 
-    @Test
-    void getContractorBillingsMonthlyReport() throws Exception {
-        Year year = Year.of(2023);
-        Month month = Month.MARCH;
-
-        List<ContractorBilling> contractorByYearAndMonth = new ArrayList<>();
-        contractorByYearAndMonth.add(this.contractorBillings.get(0));
-        List<ContractorBillingDTO> contractorByYearAndMonthDto = contractorByYearAndMonth.stream().map(ContractorBillingDTO::new).toList();
-
-        ContractorBillingReportByMonth contractorBillingReportByMonth =
-                new ContractorBillingReportByMonth(contractorByYearAndMonthDto,year,month);
-
-        given(contractorBillingService.getContractorBillingsMonthlyReport(Year.of(2023),Month.MARCH))
-                .willReturn(contractorBillingReportByMonth);
-
-        mockMvc.perform(get(this.baseUrl + "/contractor/billing/report")
-                        .param("year", String.valueOf(year.getValue()))
-                        .param("month", month.name()))
-                .andExpect(jsonPath("$.flag").value(true))
-                .andExpect(jsonPath("$.code").value(StatusCode.SUCCESS))
-                .andExpect(jsonPath("$.message").value("Success"))
-                .andExpect(jsonPath("$.data").exists());
-    }
-    @Test
-    void getContractorBillingsMonthlyReportNotFound() throws Exception {
-
-        Year year = Year.of(2023);
-        Month month = Month.MARCH;
-
-
-        given(contractorBillingService.getContractorBillingsMonthlyReport(Year.of(2023),Month.MARCH))
-                .willThrow(new ObjectNotFoundException("contractor billings", year.toString(), month.name()));
-
-        mockMvc.perform(get(this.baseUrl + "/contractor/billing/report")
-                        .param("year", String.valueOf(year.getValue()))
-                        .param("month", month.name()))
-                .andExpect(jsonPath("$.flag").value(false))
-                .andExpect(jsonPath("$.code").value(StatusCode.NOT_FOUND))
-                .andExpect(jsonPath("$.message").value("Could not find contractor billings with given 2023 and MARCH"))
-                .andExpect(jsonPath("$.data").isEmpty());
-    }
-
-
-
-
-
+    mockMvc
+        .perform(
+            get(this.baseUrl + "/contractor/billing/report")
+                .param("year", String.valueOf(year.getValue()))
+                .param("month", month.name()))
+        .andExpect(jsonPath("$.flag").value(false))
+        .andExpect(jsonPath("$.code").value(StatusCode.NOT_FOUND))
+        .andExpect(
+            jsonPath("$.message")
+                .value("Could not find contractor billings with given 2023 and MARCH"))
+        .andExpect(jsonPath("$.data").isEmpty());
+  }
 }

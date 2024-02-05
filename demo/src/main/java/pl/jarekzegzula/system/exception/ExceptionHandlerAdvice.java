@@ -24,98 +24,101 @@ import java.util.Map;
 @RestControllerAdvice
 public class ExceptionHandlerAdvice {
 
+  @ExceptionHandler(ObjectNotFoundException.class)
+  @ResponseStatus(HttpStatus.NOT_FOUND)
+  Result handleObjectNotFoundException(ObjectNotFoundException ex) {
+    return new Result(false, StatusCode.NOT_FOUND, ex.getMessage());
+  }
 
-    @ExceptionHandler(ObjectNotFoundException.class)
-    @ResponseStatus(HttpStatus.NOT_FOUND)
-    Result handleObjectNotFoundException(ObjectNotFoundException ex) {
-        return new Result(false, StatusCode.NOT_FOUND, ex.getMessage());
-    }
-
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    Result handleValidationException(MethodArgumentNotValidException ex) {
-        List<ObjectError> errors = ex.getBindingResult().getAllErrors();
-        Map<String, String> map = new HashMap<>(errors.size());
-        errors.forEach((error) -> {
-            String key = ((FieldError) error).getField();
-            String val = error.getDefaultMessage();
-            map.put(key, val);
+  @ExceptionHandler(MethodArgumentNotValidException.class)
+  @ResponseStatus(HttpStatus.BAD_REQUEST)
+  Result handleValidationException(MethodArgumentNotValidException ex) {
+    List<ObjectError> errors = ex.getBindingResult().getAllErrors();
+    Map<String, String> map = new HashMap<>(errors.size());
+    errors.forEach(
+        (error) -> {
+          String key = ((FieldError) error).getField();
+          String val = error.getDefaultMessage();
+          map.put(key, val);
         });
-        return new Result(false,
-                StatusCode.INVALID_ARGUMENT,
-                "Provided arguments are invalid, see data for details.",
-                map);
-    }
+    return new Result(
+        false,
+        StatusCode.INVALID_ARGUMENT,
+        "Provided arguments are invalid, see data for details.",
+        map);
+  }
 
-    @ExceptionHandler({UsernameNotFoundException.class, BadCredentialsException.class})
-    @ResponseStatus(HttpStatus.UNAUTHORIZED)
-    Result handleAuthenticationException(Exception ex) {
-        return new Result(false, StatusCode.UNAUTHORIZED, "username or password is incorrect", ex.getMessage());
-    }
+  @ExceptionHandler({UsernameNotFoundException.class, BadCredentialsException.class})
+  @ResponseStatus(HttpStatus.UNAUTHORIZED)
+  Result handleAuthenticationException(Exception ex) {
+    return new Result(
+        false, StatusCode.UNAUTHORIZED, "username or password is incorrect", ex.getMessage());
+  }
 
-    @ExceptionHandler(AccountStatusException.class)
-    @ResponseStatus(HttpStatus.UNAUTHORIZED)
-    Result handleAccountStatusException(AccountStatusException ex) {
-        return new Result(false, StatusCode.UNAUTHORIZED, "username account is abnormal", ex.getMessage());
-    }
+  @ExceptionHandler(AccountStatusException.class)
+  @ResponseStatus(HttpStatus.UNAUTHORIZED)
+  Result handleAccountStatusException(AccountStatusException ex) {
+    return new Result(
+        false, StatusCode.UNAUTHORIZED, "username account is abnormal", ex.getMessage());
+  }
 
-    @ExceptionHandler(InvalidBearerTokenException.class)
-    @ResponseStatus(HttpStatus.UNAUTHORIZED)
-    Result handleInvalidBearerTokenException(InvalidBearerTokenException ex) {
-        return new Result(false,
-                StatusCode.UNAUTHORIZED, "Provided access token is expired, revoked, malformed, or invalid for other reasons ",
-                ex.getMessage());
-    }
+  @ExceptionHandler(InvalidBearerTokenException.class)
+  @ResponseStatus(HttpStatus.UNAUTHORIZED)
+  Result handleInvalidBearerTokenException(InvalidBearerTokenException ex) {
+    return new Result(
+        false,
+        StatusCode.UNAUTHORIZED,
+        "Provided access token is expired, revoked, malformed, or invalid for other reasons ",
+        ex.getMessage());
+  }
 
-    @ExceptionHandler(AccessDeniedException.class)
-    @ResponseStatus(HttpStatus.FORBIDDEN)
-    Result handleAccessDeniedException(AccessDeniedException ex) {
-        return new Result(false,
-                StatusCode.FORBIDDEN, "No permission.", ex.getMessage());
-    }
+  @ExceptionHandler(AccessDeniedException.class)
+  @ResponseStatus(HttpStatus.FORBIDDEN)
+  Result handleAccessDeniedException(AccessDeniedException ex) {
+    return new Result(false, StatusCode.FORBIDDEN, "No permission.", ex.getMessage());
+  }
 
+  @ExceptionHandler(UserAlreadyExistException.class)
+  @ResponseStatus(HttpStatus.BAD_REQUEST)
+  Result handleUserAlreadyExistException(Exception ex) {
+    return new Result(false, StatusCode.INVALID_ARGUMENT, ex.getMessage());
+  }
 
-    @ExceptionHandler(UserAlreadyExistException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    Result handleUserAlreadyExistException(Exception ex) {
-        return new Result(false, StatusCode.INVALID_ARGUMENT, ex.getMessage());
-    }
+  @ExceptionHandler(ContractorAlreadyExistInGivenTimeException.class)
+  @ResponseStatus(HttpStatus.BAD_REQUEST)
+  Result handleContractorExistException(Exception ex) {
+    return new Result(false, StatusCode.INVALID_ARGUMENT, ex.getMessage());
+  }
 
-    @ExceptionHandler(ContractorAlreadyExistInGivenTimeException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    Result handleContractorExistException(Exception ex) {
-        return new Result(false, StatusCode.INVALID_ARGUMENT, ex.getMessage());
-    }
+  @ExceptionHandler(NoHandlerFoundException.class)
+  @ResponseStatus(HttpStatus.NOT_FOUND)
+  Result handleAccessDeniedException(NoHandlerFoundException ex) {
+    return new Result(
+        false, StatusCode.NOT_FOUND, "This API endpoint is not found.", ex.getMessage());
+  }
 
-    @ExceptionHandler(NoHandlerFoundException.class)
-    @ResponseStatus(HttpStatus.NOT_FOUND)
-    Result handleAccessDeniedException(NoHandlerFoundException ex) {
-        return new Result(false, StatusCode.NOT_FOUND, "This API endpoint is not found.", ex.getMessage());
-    }
+  @ExceptionHandler(ValueUnchangedException.class)
+  @ResponseStatus(HttpStatus.NOT_FOUND)
+  Result handleSalaryUnchangedOrLessThanZeroException(ValueUnchangedException ex) {
+    return new Result(false, StatusCode.INVALID_ARGUMENT, ex.getMessage());
+  }
 
-    @ExceptionHandler(ValueUnchangedException.class)
-    @ResponseStatus(HttpStatus.NOT_FOUND)
-    Result handleSalaryUnchangedOrLessThanZeroException(ValueUnchangedException ex) {
-        return new Result(false, StatusCode.INVALID_ARGUMENT, ex.getMessage());
-    }
+  @ExceptionHandler(SameHoursOrLessThanZeroException.class)
+  @ResponseStatus(HttpStatus.NOT_FOUND)
+  Result handleSameHoursOrLessThanZeroException(SameHoursOrLessThanZeroException ex) {
+    return new Result(false, StatusCode.INVALID_ARGUMENT, ex.getMessage());
+  }
 
-    @ExceptionHandler(SameHoursOrLessThanZeroException.class)
-    @ResponseStatus(HttpStatus.NOT_FOUND)
-    Result handleSameHoursOrLessThanZeroException(SameHoursOrLessThanZeroException ex) {
-        return new Result(false, StatusCode.INVALID_ARGUMENT, ex.getMessage());
-    }
+  @ExceptionHandler(IllegalContractTypeArgument.class)
+  @ResponseStatus(HttpStatus.NOT_FOUND)
+  Result handleIllegalContractTypeArgument(IllegalContractTypeArgument ex) {
+    return new Result(false, StatusCode.INVALID_ARGUMENT, ex.getMessage());
+  }
 
-    @ExceptionHandler(IllegalContractTypeArgument.class)
-    @ResponseStatus(HttpStatus.NOT_FOUND)
-    Result handleIllegalContractTypeArgument(IllegalContractTypeArgument ex) {
-        return new Result(false, StatusCode.INVALID_ARGUMENT, ex.getMessage());
-    }
-
-    @ExceptionHandler(Exception.class)
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    Result handleOtherException(Exception ex) {
-        return new Result(false,
-                StatusCode.INTERNAL_SERVER_ERROR, "A server internal error occurs", ex.getMessage());
-    }
-
+  @ExceptionHandler(Exception.class)
+  @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+  Result handleOtherException(Exception ex) {
+    return new Result(
+        false, StatusCode.INTERNAL_SERVER_ERROR, "A server internal error occurs", ex.getMessage());
+  }
 }

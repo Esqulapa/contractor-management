@@ -11,19 +11,15 @@ import java.util.stream.Collectors;
 @Component
 public class AppUserToAppUserDtoConverter implements Converter<AppUser, AppUserDto> {
 
-    @Override
-    public AppUserDto convert(AppUser source) {
+  @Override
+  public AppUserDto convert(AppUser source) {
 
-        return new AppUserDto(source.getId(),
-                source.getUsername(),
-                source.isEnabled(),
-                source.getRoles());
-    }
+    return new AppUserDto(
+        source.getId(), source.getUsername(), source.isEnabled(), source.getRoles());
+  }
 
-    public List<AppUserDto> convertList(List<AppUser> userList) {
+  public List<AppUserDto> convertList(List<AppUser> userList) {
 
-        return userList.stream()
-                .map(this::convert)
-                .collect(Collectors.toList());
-    }
+    return userList.stream().map(this::convert).collect(Collectors.toList());
+  }
 }

@@ -7,11 +7,11 @@ import java.time.Year;
 import java.util.List;
 import java.util.Optional;
 
-public interface ContractorBillingRepository extends JpaRepository<ContractorBilling,Integer> {
+public interface ContractorBillingRepository extends JpaRepository<ContractorBilling, Integer> {
 
-    Optional<ContractorBilling> findById(Integer id);
+  Optional<ContractorBilling> findById(Integer id);
 
-    Optional<List<ContractorBilling>> findByYearAndMonth(Year year, Month month);
+  List<ContractorBilling> findByYearAndMonth(Year year, Month month);
 
-    boolean existsByContractorIdAndYearAndMonth(Integer id, Year year, Month month);
+  boolean existsByContractorIdAndYearAndMonth(Integer id, Year year, Month month);
 }
