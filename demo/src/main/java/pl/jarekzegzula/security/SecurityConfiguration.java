@@ -85,7 +85,7 @@ public class SecurityConfiguration {
                     .anyRequest()
                     .authenticated())
         .csrf(AbstractHttpConfigurer::disable)
-            .cors(Customizer.withDefaults())
+        .cors(Customizer.withDefaults())
         .httpBasic(
             httpBasic ->
                 httpBasic.authenticationEntryPoint(this.customBasicAuthenticationEntryPoint))
@@ -125,8 +125,7 @@ public class SecurityConfiguration {
 
     jwtGrantedAuthoritiesConverter.setAuthoritiesClaimName("authorities");
 
-    jwtGrantedAuthoritiesConverter.setAuthorityPrefix(
-        "");
+    jwtGrantedAuthoritiesConverter.setAuthorityPrefix("");
 
     JwtAuthenticationConverter jwtAuthenticationConverter = new JwtAuthenticationConverter();
 
