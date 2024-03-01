@@ -2,7 +2,7 @@
 	"info": {
 		"_postman_id": "91701993-8043-4fad-9837-8b371e8c2ffc",
 		"name": "contractor-management",
-		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json",
 		"_exporter_id": "29118492"
 	},
 	"item": [
@@ -14,15 +14,7 @@
 					"request": {
 						"method": "GET",
 						"header": [],
-						"url": {
-							"raw": "{{base_url}}/contractor",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"contractor"
-							]
-						}
+						"url": "{{base_url}}/contractor"
 					},
 					"response": []
 				},
@@ -31,16 +23,7 @@
 					"request": {
 						"method": "GET",
 						"header": [],
-						"url": {
-							"raw": "{{base_url}}/contractor/10",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"contractor",
-								"10"
-							]
-						}
+						"url": "{{base_url}}/contractor/1"
 					},
 					"response": []
 				},
@@ -51,22 +34,14 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": " {        \r\n        \"firstName\": \"Rysio\",\r\n        \"lastName\": \"Fazzowski\",\r\n        \"salary\": 2023.00\r\n                   \r\n       \r\n}",
+							"raw": " {        \r\n        \"firstName\": \"Rysio\",\r\n        \"lastName\": \"Fazzowksy\",\r\n        \"contractType\": 1,\r\n        \"hourlyRate\": 50,\r\n        \"monthlyHourLimit\": 168,\r\n        \"isOvertimePaid\": true,\r\n        \"overtimeMultiplier\": 1.5,\r\n        \"contractorHourPrice\": 80.0\r\n\r\n                   \r\n       \r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
 								}
 							}
 						},
-						"url": {
-							"raw": "{{base_url}}/contractor",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"contractor"
-							]
-						}
+						"url": "{{base_url}}/contractor"
 					},
 					"response": []
 				},
@@ -77,23 +52,14 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "\r\n{\r\n    \"salary\": 1500\r\n}",
+							"raw": "\r\n{\r\n    \"hourlyRate\": 55.0\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
 								}
 							}
 						},
-						"url": {
-							"raw": "{{base_url}}/contractor/2",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"contractor",
-								"2"
-							]
-						}
+						"url": "{{base_url}}/contractor/hourly-rate/2"
 					},
 					"response": []
 				},
@@ -104,23 +70,14 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "\r\n{\r\n    \"salary\": 1500\r\n}",
+							"raw": "\r\n{\r\n    \"hours\": 170\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
 								}
 							}
 						},
-						"url": {
-							"raw": "{{base_url}}/contractor/2",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"contractor",
-								"2"
-							]
-						}
+						"url": "{{base_url}}/contractor/hour-limit/2"
 					},
 					"response": []
 				},
@@ -131,23 +88,14 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "\r\n{\r\n    \"salary\": 1500\r\n}",
+							"raw": "\r\n{\r\n    \"multiplier\": 2.0\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
 								}
 							}
 						},
-						"url": {
-							"raw": "{{base_url}}/contractor/2",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"contractor",
-								"2"
-							]
-						}
+						"url": "{{base_url}}/contractor/multiplier/2"
 					},
 					"response": []
 				},
@@ -158,23 +106,14 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "\r\n{\r\n    \"salary\": 1500\r\n}",
+							"raw": "\r\n{\r\n    \"hourPrice\": 90.0\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
 								}
 							}
 						},
-						"url": {
-							"raw": "{{base_url}}/contractor/2",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"contractor",
-								"2"
-							]
-						}
+						"url": "{{base_url}}/contractor/hour-price/2"
 					},
 					"response": []
 				},
@@ -185,23 +124,14 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "\r\n{\r\n    \"salary\": 1500\r\n}",
+							"raw": "\r\n{\r\n    \"value\": true\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
 								}
 							}
 						},
-						"url": {
-							"raw": "{{base_url}}/contractor/2",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"contractor",
-								"2"
-							]
-						}
+						"url": "{{base_url}}/contractor/overtime/2"
 					},
 					"response": []
 				},
@@ -212,23 +142,14 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "\r\n{\r\n    \"salary\": 1500\r\n}",
+							"raw": "\r\n{\r\n    \"contractType\": 1\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
 								}
 							}
 						},
-						"url": {
-							"raw": "{{base_url}}/contractor/2",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"contractor",
-								"2"
-							]
-						}
+						"url": "{{base_url}}/contractor/contract-type/2"
 					},
 					"response": []
 				},
@@ -237,16 +158,7 @@
 					"request": {
 						"method": "DELETE",
 						"header": [],
-						"url": {
-							"raw": "{{base_url}}/contractor/1",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"contractor",
-								"1"
-							]
-						}
+						"url": "{{base_url}}/contractor/3"
 					},
 					"response": []
 				}
@@ -260,16 +172,7 @@
 					"request": {
 						"method": "GET",
 						"header": [],
-						"url": {
-							"raw": "{{base_url}}/contractor/billing",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"contractor",
-								"billing"
-							]
-						}
+						"url": "{{base_url}}/contractor/billing"
 					},
 					"response": []
 				},
@@ -278,17 +181,7 @@
 					"request": {
 						"method": "GET",
 						"header": [],
-						"url": {
-							"raw": "{{base_url}}/contractor/billing/1",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"contractor",
-								"billing",
-								"1"
-							]
-						}
+						"url": "{{base_url}}/contractor/billing/1"
 					},
 					"response": []
 				},
@@ -298,7 +191,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{base_url}}/contractor/billing/report?year=2023&month=FEBRUARY",
+							"raw": "{{base_url}}/contractor/billing/report?year=2024&month=FEBRUARY",
 							"host": [
 								"{{base_url}}"
 							],
@@ -310,7 +203,7 @@
 							"query": [
 								{
 									"key": "year",
-									"value": "2023"
+									"value": "2024"
 								},
 								{
 									"key": "month",
@@ -328,23 +221,14 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "  {\r\n        \"id\": \"1\",\r\n        \"workedHours\": 180.0,\r\n        \"year\": 2023,\r\n        \"month\": \"JUNE\"           \r\n       }",
+							"raw": "  {\r\n        \"id\": \"2\",\r\n        \"workedHours\": 170.0,\r\n        \"year\": 2024,\r\n        \"month\": \"MARCH\"           \r\n       }",
 							"options": {
 								"raw": {
 									"language": "json"
 								}
 							}
 						},
-						"url": {
-							"raw": "{{base_url}}/contractor/billing",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"contractor",
-								"billing"
-							]
-						}
+						"url": "{{base_url}}/contractor/billing"
 					},
 					"response": []
 				},
@@ -355,24 +239,14 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"workedHours\": 0\r\n}",
+							"raw": "{\r\n    \"workedHours\": 130\r\n    \r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
 								}
 							}
 						},
-						"url": {
-							"raw": "{{base_url}}/contractor/billing/1",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"contractor",
-								"billing",
-								"1"
-							]
-						}
+						"url": "{{base_url}}/contractor/billing/hours/1"
 					},
 					"response": []
 				},
@@ -381,17 +255,7 @@
 					"request": {
 						"method": "DELETE",
 						"header": [],
-						"url": {
-							"raw": "{{base_url}}/contractor/billing/2",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"contractor",
-								"billing",
-								"2"
-							]
-						}
+						"url": "{{base_url}}/contractor/billing/1"
 					},
 					"response": []
 				}
@@ -403,20 +267,12 @@
 				{
 					"name": "Get all users",
 					"request": {
+						"auth": {
+							"type": "noauth"
+						},
 						"method": "GET",
 						"header": [],
-						"url": {
-							"raw": "localhost:8080/api/v1/users",
-							"host": [
-								"localhost"
-							],
-							"port": "8080",
-							"path": [
-								"api",
-								"v1",
-								"users"
-							]
-						}
+						"url": "localhost:8080/api/v1/users"
 					},
 					"response": []
 				},
@@ -437,16 +293,7 @@
 								}
 							}
 						},
-						"url": {
-							"raw": "{{base_url}}/users/register",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"users",
-								"register"
-							]
-						}
+						"url": "{{base_url}}/users/register"
 					},
 					"response": []
 				},
@@ -455,31 +302,14 @@
 					"request": {
 						"auth": {
 							"type": "basic",
-							"basic": [
-								{
-									"key": "username",
-									"value": "user",
-									"type": "string"
-								},
-								{
-									"key": "password",
-									"value": "1234",
-									"type": "string"
-								}
-							]
+							"basic": {
+								"username": "user",
+								"password": "1234"
+							}
 						},
 						"method": "POST",
 						"header": [],
-						"url": {
-							"raw": "{{base_url}}/users/login",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"users",
-								"login"
-							]
-						}
+						"url": "{{base_url}}/users/login"
 					},
 					"response": []
 				},
@@ -488,31 +318,14 @@
 					"request": {
 						"auth": {
 							"type": "basic",
-							"basic": [
-								{
-									"key": "username",
-									"value": "user",
-									"type": "string"
-								},
-								{
-									"key": "password",
-									"value": "1234",
-									"type": "string"
-								}
-							]
+							"basic": {
+								"username": "rysio",
+								"password": "1234"
+							}
 						},
 						"method": "POST",
 						"header": [],
-						"url": {
-							"raw": "{{base_url}}/users/login",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"users",
-								"login"
-							]
-						}
+						"url": "{{base_url}}/users/login"
 					},
 					"response": []
 				},
@@ -521,16 +334,7 @@
 					"request": {
 						"method": "GET",
 						"header": [],
-						"url": {
-							"raw": "{{base_url}}/users/dto",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"users",
-								"dto"
-							]
-						}
+						"url": "{{base_url}}/users/dto"
 					},
 					"response": []
 				}
@@ -539,13 +343,9 @@
 	],
 	"auth": {
 		"type": "bearer",
-		"bearer": [
-			{
-				"key": "token",
-				"value": "eyJhbGciOiJSUzI1NiJ9.eyJpc3MiOiJzZWxmIiwic3ViIjoidXNlciIsImV4cCI6MTcwNTcwMDk5OSwiaWF0IjoxNzA1NjkzNzk5LCJhdXRob3JpdGllcyI6IlJPTEVfYWRtaW4ifQ.wHcaTwaIAhH0j7blBH5zFx4CR6zuPBatzimPHALvv878VZg3OsS0ESy_mO4mFmzm8RwgDEdAWZZZ4qP7Um9GAv6up3ndc2Lg2wO3c7-6oxZ_pTvqEi9BuFJ6N_uTC0coZPNzm2ouF6OoMqw2by9dyVVP63ks89MME83Q_PSBbxKytXoE77SY2YDGgWJwW7vwyZn_5LHaVHL0jyVXwHMKF5tFtDxYyjak-0vrXI8n90VnsLE0mw5RvhDhY8fQlOg3YA9PaA88aFXHAi4V1Z4_ztJbCSanOGZxdTzNboYj61KpjTm0brga555_lek8MIlmTteaT7DGr0gL03r-n4G_sA",
-				"type": "string"
-			}
-		]
+		"bearer": {
+			"token": "eyJhbGciOiJSUzI1NiJ9.eyJpc3MiOiJzZWxmIiwic3ViIjoidXNlciIsImV4cCI6MTcwOTMwMDEyMiwiaWF0IjoxNzA5MjkyOTIyLCJhdXRob3JpdGllcyI6IlJPTEVfYWRtaW4ifQ.VGWgBp7onDLjxUReLj9bt2UqmehdbjLq-bPVPZ86yuVqARsob0y56191WDUYmATJG_mqHwGM4vkd5IDYQMnjv5LwoDPkdmo1jy3BBS2GLI9op_gKcBSSsJhvaD01LLkIpC5qvbc2IwGC7gKqsnAdS5faSQIBIwyn88fhiYaCFcsuS24lY8o0l3AAdSJVC0jQOY52f506I4hc4hW1wJoXEep7SQ8YdkyzCSXa4WRgd1J3dR0BEJWOur4yjxfPc2_HVFXBgjv39h91oRwdF7dloUnyyxg1y-13uABOOWXG0WjTutqMXijfbK33vFaqfTI_S4yfHtUk_ZnFvwd8j9-G5A"
+		}
 	},
 	"event": [
 		{
