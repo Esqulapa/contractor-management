@@ -1,15 +1,21 @@
 package pl.jarekzegzula.security;
 
+import static pl.jarekzegzula.system.Constants.*;
+
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.NoSuchAlgorithmException;
+import java.security.interfaces.RSAPrivateKey;
+import java.security.interfaces.RSAPublicKey;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -24,13 +30,6 @@ import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.web.SecurityFilterChain;
-import static pl.jarekzegzula.system.Constants.*;
-
-import java.security.KeyPair;
-import java.security.KeyPairGenerator;
-import java.security.NoSuchAlgorithmException;
-import java.security.interfaces.RSAPrivateKey;
-import java.security.interfaces.RSAPublicKey;
 
 @Configuration
 @EnableWebSecurity
@@ -67,30 +66,14 @@ public class SecurityConfiguration {
 
   @Bean
   public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-    return http.authorizeHttpRequests(
-            authorizeHttpRequests ->
-                authorizeHttpRequests
-                    .requestMatchers(HttpMethod.GET, this.baseUrl + "/contractor")
-                    .hasAuthority("ROLE_admin")
-                    .requestMatchers(HttpMethod.GET, this.baseUrl + "/contractor/**")
-                    .hasAuthority("ROLE_admin")
-                    .requestMatchers(HttpMethod.POST, this.baseUrl + "/users/register")
-                    .permitAll()
-                    .requestMatchers(HttpMethod.GET, this.baseUrl + "/users/dto")
-                    .permitAll()
-                    .requestMatchers(HttpMethod.PUT, this.baseUrl + "/users/**")
-                    .hasAuthority("ROLE_admin")
-                    .requestMatchers(HttpMethod.DELETE, this.baseUrl + "/users/**")
-                    .hasAuthority("ROLE_admin")
-                    .anyRequest()
-                    .authenticated())
+    return http.authorizeHttpRequests(authorize -> authorize.anyRequest().authenticated())
         .csrf(AbstractHttpConfigurer::disable)
         .cors(Customizer.withDefaults())
         .httpBasic(
             httpBasic ->
                 httpBasic.authenticationEntryPoint(this.customBasicAuthenticationEntryPoint))
         .oauth2ResourceServer(
-            (oauth2) ->
+            oauth2 ->
                 oauth2
                     .jwt(Customizer.withDefaults())
                     .authenticationEntryPoint(this.customBearerTokenAuthenticationEntryPoint)
