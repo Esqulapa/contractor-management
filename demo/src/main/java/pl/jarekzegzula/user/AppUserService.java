@@ -52,6 +52,12 @@ public class AppUserService implements UserDetailsService {
         .orElseThrow(() -> new ObjectNotFoundException("user", id));
   }
 
+  public AppUser findByUsername(String username) {
+    return appUserRepository
+            .findByUsername(username)
+            .orElseThrow(() -> new ObjectNotFoundException("user"));
+  }
+
   public List<AppUserDto> getAllUsersDto() {
     List<AppUser> all = appUserRepository.findAll();
     return appUserToAppUserDtoConverter.convertList(all);

@@ -1,7 +1,9 @@
 package pl.jarekzegzula.system.exception;
 
 public class ObjectNotFoundException extends RuntimeException {
-
+  public ObjectNotFoundException(String objectName) {
+    super("Could not find " + objectName);
+  }
   public ObjectNotFoundException(String objectName, String id) {
     super("Could not find " + objectName + " with Id " + id);
   }

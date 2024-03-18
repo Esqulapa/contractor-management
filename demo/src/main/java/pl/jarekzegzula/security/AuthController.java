@@ -24,6 +24,7 @@ public class AuthController {
   @PostMapping("/login")
   public Result getLoginInfo(Authentication authentication) {
     LOGGER.debug("Authenticated user: '{}'", authentication.getName());
+
     return new Result(
         true,
         StatusCode.SUCCESS,
