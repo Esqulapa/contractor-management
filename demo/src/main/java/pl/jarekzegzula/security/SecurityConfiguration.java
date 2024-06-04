@@ -70,8 +70,8 @@ public class SecurityConfiguration {
     return http.authorizeHttpRequests(
             authorize ->
                 authorize
-                    .requestMatchers(HttpMethod.POST, this.baseUrl + "/users/token/refresh")
-                    .permitAll()
+                    .requestMatchers(HttpMethod.POST, this.baseUrl + "/users/token/refresh").permitAll()
+                        .requestMatchers(HttpMethod.DELETE, this.baseUrl + "/users/*").hasRole("admin")
                     .anyRequest()
                     .authenticated())
         .csrf(AbstractHttpConfigurer::disable)

@@ -80,6 +80,7 @@ public class AppUserController {
 
   @DeleteMapping("/{userId}")
   public Result deleteUser(@PathVariable Integer userId) {
+
     this.appUserService.deleteUserById(userId);
     return new Result(true, StatusCode.SUCCESS, "Delete Success");
   }

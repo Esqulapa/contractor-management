@@ -56,7 +56,7 @@ public class ContractorBillingControllerIntegrationTest {
     MvcResult mvcResult = resultActions.andDo(print()).andReturn();
     String contentAsString = mvcResult.getResponse().getContentAsString();
     JSONObject json = new JSONObject(contentAsString);
-    this.token = "Bearer " + json.getJSONObject("data").getString("token");
+    this.token = "Bearer " + json.getJSONObject("data").getString("access_token");
   }
 
   @Test

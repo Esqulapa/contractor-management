@@ -68,6 +68,7 @@ public class AppUserService implements UserDetailsService {
   }
 
   public void deleteUserById(Integer id) {
+
     this.appUserRepository.findById(id).orElseThrow(() -> new ObjectNotFoundException("user", id));
     this.appUserRepository.deleteById(id);
   }
