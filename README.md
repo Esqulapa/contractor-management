@@ -28,7 +28,7 @@ click at ![img.png](data/img.png)
 
 ###  Navigate to the `/docker` directory:
   ```bash
-cd contractor-management/demo/docker  
+cd contractor-management/docker  
    ```
 
 and do 
@@ -36,20 +36,12 @@ and do
 docker-compose up -d   
    ```
 
-###  Run Flyway migrations using Gradle:
-  ```bash
-./gradlew flywayMigrate   
-   ```
-
-or execute from toolbar
-
-![img.png](data/img2.png)
-
-### Once the migration is successful, you can start the application:
+### You can start the application:
 
   ```bash
 ./gradlew bootRun   
    ```
+
 
 ### To perform requests, I recommend using Postman. In the `/data` directory, there is a collection of requests to import. 
 ```bash
