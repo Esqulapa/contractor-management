@@ -26,12 +26,10 @@ dependencies {
 	implementation group: 'org.springframework.security', name: 'spring-security-oauth2-resource-server', version: '6.1.4'
 
 	runtimeOnly 'org.postgresql:postgresql'
-	compileOnly 'org.projectlombok:lombok:1.18.28'
-	annotationProcessor 'org.projectlombok:lombok:1.18.28'
-	testCompileOnly 'org.projectlombok:lombok:1.18.28'
-	testAnnotationProcessor 'org.projectlombok:lombok:1.18.28'
-
-
+	compileOnly 'org.projectlombok:lombok:1.18.30'
+	annotationProcessor 'org.projectlombok:lombok:1.18.30'
+	testCompileOnly 'org.projectlombok:lombok:1.18.30'
+	testAnnotationProcessor 'org.projectlombok:lombok:1.18.30'
 
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.springframework.security:spring-security-test'
@@ -47,6 +45,8 @@ flyway {
 	defaultSchema = 'contractor_management'
 }
 
-tasks.named('test') {
-	useJUnitPlatform()
-}
+bootRun.dependsOn flywayMigrate
+
+//tasks.named('test') {
+//	useJUnitPlatform()
+//}
