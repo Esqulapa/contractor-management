@@ -47,6 +47,3 @@ flyway {
 
 bootRun.dependsOn flywayMigrate
 
-//tasks.named('test') {
-//	useJUnitPlatform()
-//}
