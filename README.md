@@ -23,8 +23,11 @@ To run this application, follow these steps:
 
 ###  When opening project:
 
-click at ![img.png](data/img.png)
-  and let gradle build project
+click at  
+
+![img.png](data/img.png)
+
+and let gradle build project
 
 ###  Navigate to the `/docker` directory:
   ```bash
