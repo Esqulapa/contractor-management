@@ -42,7 +42,7 @@ dependencies {
 flyway {
 	url = 'jdbc:postgresql://localhost:5332/JAREK'
 	user = 'postgres'
-	password = 'Antekantek'
+	password = 'postgres'
 	schemas = ['contractor_management']
 	defaultSchema = 'contractor_management'
 }
