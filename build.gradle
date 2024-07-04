@@ -36,6 +36,9 @@ dependencies {
 	testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5.10.1'
 
 }
+test {
+    useJUnitPlatform()
+}
 
 flyway {
 	url = 'jdbc:postgresql://localhost:5332/JAREK'
